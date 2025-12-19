@@ -181,7 +181,7 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
               <th colSpan={3} className="px-1 py-1 border border-slate-700">Skor</th>
               <th rowSpan={2} className="px-4 py-2 border border-slate-700 text-left">Catatan</th>
             </tr>
-            <tr className="bg-slate-800 text-[7px]">
+            <tr className="bg-slate-800 text-white text-[7px]">
               <th className="border border-slate-700 px-1">2</th>
               <th className="border border-slate-700 px-1">1</th>
               <th className="border border-slate-700 px-1">0</th>
@@ -192,7 +192,7 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
               <React.Fragment key={sIdx}>
                 <tr className="bg-slate-100 font-bold uppercase"><td colSpan={6} className="px-4 py-1 border border-slate-200 text-[8px] text-slate-500">{section.group}</td></tr>
                 {section.items.map((item, iIdx) => (
-                  <tr key={item.id} className="hover:bg-slate-50">
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-1 py-1 border border-slate-200 text-center font-bold text-slate-400">{iIdx + 1}</td>
                     <td className="px-4 py-1 border border-slate-200">{item.label}</td>
                     {[2, 1, 0].map(v => (

@@ -61,6 +61,32 @@ export interface TeacherRecord {
   feedbackAI?: string;
 }
 
+export interface ExtraRecord {
+  id: number;
+  nama: string;
+  nip: string;
+  hari: string;
+  tgl: string;
+  pukul: string;
+  ekstra: string;
+  tempat: string;
+  supervisor: string;
+  semester: 'Ganjil' | 'Genap';
+}
+
+export interface AdminRecord {
+  id: number;
+  nama: string;
+  nip: string;
+  hari: string;
+  tgl: string;
+  pukul: string;
+  kegiatan: string;
+  tempat: string;
+  supervisor: string;
+  semester: 'Ganjil' | 'Genap';
+}
+
 export type ViewType = 
   | 'dashboard'
   | 'settings'

@@ -136,7 +136,6 @@ const AdministrasiPembelajaran: React.FC<Props> = ({ settings, records, instrume
     html2pdf().set(opt).from(element).save();
   };
 
-  // Helper to format date based on supervision date
   const displayDate = useMemo(() => {
     const dateToUse = selectedTeacher?.tanggal || settings.tanggalCetak;
     return new Date(dateToUse).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
@@ -190,7 +189,7 @@ const AdministrasiPembelajaran: React.FC<Props> = ({ settings, records, instrume
               <th colSpan={3} className="px-2 py-2 border border-slate-700 text-center">Kondisi</th>
               <th rowSpan={2} className="px-4 py-3 border border-slate-700 text-left">Keterangan</th>
             </tr>
-            <tr className="bg-slate-800 text-[8px] text-center">
+            <tr className="bg-slate-800 text-white text-[8px] text-center">
               <th className="px-1 py-2 border border-slate-700">0</th>
               <th className="px-1 py-2 border border-slate-700">1</th>
               <th className="px-1 py-2 border border-slate-700">2</th>

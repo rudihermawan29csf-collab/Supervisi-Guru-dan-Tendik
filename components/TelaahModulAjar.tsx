@@ -152,7 +152,7 @@ const TelaahModulAjar: React.FC<Props> = ({ settings, records, instrumentResults
               <th colSpan={3} className="px-1 py-1 border border-slate-700">Skor</th>
               <th rowSpan={2} className="px-4 py-2 border border-slate-700 text-left">Catatan</th>
             </tr>
-            <tr className="bg-slate-800 text-[7px]">
+            <tr className="bg-slate-800 text-white text-[7px]">
               <th className="border border-slate-700 px-1">2</th>
               <th className="border border-slate-700 px-1">1</th>
               <th className="border border-slate-700 px-1">0</th>
@@ -174,7 +174,7 @@ const TelaahModulAjar: React.FC<Props> = ({ settings, records, instrumentResults
                 </tr>
               </React.Fragment>
             ))}
-            <tr className="bg-slate-50 font-black">
+            <tr className="bg-slate-50 font-black text-slate-900">
               <td colSpan={2} className="px-4 py-3 border border-slate-200 text-right uppercase">Skor: {stats.totalScore} ({stats.percentage}%)</td>
               <td colSpan={4} className="px-4 py-3 border border-slate-200 text-center text-orange-700 uppercase italic">Kriteria: {stats.kriteria}</td>
             </tr>

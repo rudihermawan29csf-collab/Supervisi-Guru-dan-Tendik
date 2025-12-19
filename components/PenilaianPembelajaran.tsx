@@ -142,7 +142,7 @@ const PenilaianPembelajaran: React.FC<Props> = ({ settings, records, instrumentR
               <th colSpan={2} className="px-2 py-2 border border-slate-700">Hasil</th>
               <th colSpan={4} className="px-2 py-2 border border-slate-700">Kesesuaian (1-4)</th>
             </tr>
-            <tr className="bg-slate-800 text-[8px]">
+            <tr className="bg-slate-800 text-white text-[8px]">
               <th className="border border-slate-700 px-1 py-1">Ada</th>
               <th className="border border-slate-700 px-1 py-1">Tdk</th>
               <th className="border border-slate-700 px-1 py-1">4</th>
@@ -153,8 +153,8 @@ const PenilaianPembelajaran: React.FC<Props> = ({ settings, records, instrumentR
           </thead>
           <tbody>
             {ITEMS.map((item, idx) => (
-              <tr key={idx} className="hover:bg-slate-50">
-                <td className="px-2 py-2 border border-slate-200 text-center">{idx + 1}</td>
+              <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                <td className="px-2 py-2 border border-slate-200 text-center font-bold text-slate-400">{idx + 1}</td>
                 <td className="px-4 py-2 border border-slate-200 font-medium">{item}</td>
                 <td className="px-1 py-2 border border-slate-200 text-center"><input type="radio" checked={monitoring[idx] === 'ada'} onChange={() => setMonitoring(p => ({...p, [idx]: 'ada'}))} /></td>
                 <td className="px-1 py-2 border border-slate-200 text-center"><input type="radio" checked={monitoring[idx] === 'tidak'} onChange={() => setMonitoring(p => ({...p, [idx]: 'tidak'}))} /></td>
@@ -163,7 +163,7 @@ const PenilaianPembelajaran: React.FC<Props> = ({ settings, records, instrumentR
                 ))}
               </tr>
             ))}
-            <tr className="bg-slate-100 font-black">
+            <tr className="bg-slate-100 font-black text-slate-900">
               <td colSpan={4} className="px-4 py-3 border border-slate-200 text-right uppercase">Skor: {stats.totalScore}</td>
               <td colSpan={4} className="px-4 py-3 border border-slate-200 text-center text-emerald-700 uppercase italic">Hasil: {stats.percentage}% ({stats.kriteria})</td>
             </tr>

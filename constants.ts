@@ -20,6 +20,45 @@ export const INITIAL_TEACHERS: TeacherRecord[] = [
   { id: 16, no: 16, hari: '', tanggal: '', namaGuru: 'Fahmi Wahyuni, S.Pd', nip: '-', pangkatGolongan: '-', mataPelajaran: 'Bahasa Indonesia', kelas: '', jamKe: '', status: SupervisionStatus.PENDING, semester: 'Ganjil' },
 ];
 
+export const DATA_PTT = [
+  {
+    no: 1, nama: "Imam Safi'i", jabatan: "PTT", nip: "-", 
+    tugas: [
+      { label: "1. Koordinator Tenaga Administrasi Sekolah", detail: "1.1. Struktur Organisasi Sekolah" },
+      { label: "2. Pelaksana Urusan Administrasi Kepegawaian", detail: "2.1. File Guru dan Karyawan, 2.2. Papan Data ketenagaan" },
+      { label: "3. Proktor Kegiatan Evaluasi dan Penilaian", detail: "3.1. Pelaksana Asesmen Kompetensi Minimum, 3.2. Kegiatan Evaluasi dan Penilaian lainnya" },
+      { label: "4. Operator PPDB", detail: "4. Melaksanakan kegiatan PPDB (Online) mulai dari persiapan, pelaksanaan, sampai pada pelaporan kegiatan." },
+      { label: "5. Operator Dapodik", detail: "5.1. Pelaksana Dapodik, 5.2. Pelaksana E Rapor, 5.3. Pembuat Nomor Induk Siswa" },
+      { label: "6. Urusan Mutasi Peserta Didik", detail: "6.1. Penyelesaian Mutasi Siswa, 6.2. Buku Klaper" }
+    ]
+  },
+  {
+    no: 2, nama: "Mansyur Rohmad", jabatan: "PTT", nip: "-",
+    tugas: [
+      { label: "1. Pelaksana Urusan Adm.Humas", detail: "1.1. Buku Absensi GTT/PTT, 1.2. Membantu pelaksanaan kegiatan Humas" },
+      { label: "2. Pelaksana Urusan Administrasi Kesiswaan", detail: "2.1. Pengisian Identitas Buku Induk Siswa, 2.2. Pengisian Data Nilai Siswa Ke Buku Induk, 2.3. Penempelan Foto Siswa di Buku Induk, 2.4. Penyelesaian Buku Raport Siswa" },
+      { label: "3. Pelaksana Urusan Sarana dan Prasarana", detail: "3.1. Koordinator Perawatan Sarana Sekolah, 3.2. Petugas Perpustakaan" }
+    ]
+  },
+  {
+    no: 3, nama: "Rayi Putri Lestari, S.Pd.", jabatan: "PTT", nip: "-",
+    tugas: [
+      { label: "1. Pelaksana Urusan Adm. Persuratan dan pengarsipan", detail: "1.1. Agenda Surat, 1.2. Penerima Surat/Disposisi, 1.3. Pembuat/Pencetak SPPD, 1.4. Buku Ekspidisi, 1.5. Pengarsipan Surat ( Filling ), 1.6. Buku Tamu Umum, 1.7. Buku Tamu Dinas, 1.8. Buku Notulen Rapat, 1.9. Bel Pelaksanaan PBM, 1.10. Cek List Jurnal Guru Perminggu" },
+      { label: "2. Pengelola Urusan KIP/PIP/PKH/KKS", detail: "2. Terlaksananya proses KIP/PIP/PKH/KKS bagi peserta Didik" },
+      { label: "3. Pelaksana Urusan Administrasi Kurikulum", detail: "3.1. Arsip Ijazah SD, 3.2. Arsip Ijazah SMP, 3.3. Legalisir Ijazah." },
+      { label: "4. Staf Kepegawaian", detail: "4.1. Buku Daftar Urutan Kepangkatan, 4.2. Daftar Tenaga masa Kenaikan Berkala, 4.3. Daftar masa Purna Tugas." }
+    ]
+  },
+  {
+    no: 4, nama: "Mochamad Ansori", jabatan: "PTT", nip: "-",
+    tugas: [
+      { label: "1. Pelaksana Urusan Administrasi Layanan Khusus", detail: "1.1. Kurir persuratan, 1.2. Tugas pelayanan tertentu" },
+      { label: "2. Petugas Kebersihan", detail: "2.1. Kebersihan Ruang Guru, 2.2. Kebersihan Ruang TU, 2.3. Kebersihan Semua Toilet Sekolah, 2.4. Kebersihan Lingkungan Sekolah." },
+      { label: "3. Penjaga Sekolah", detail: "3.1. Penjaga malam" }
+    ]
+  }
+];
+
 export const SCHEDULE_TEACHERS: TeacherCode[] = [
   { no: 1, nama: 'Dra. Sri Hayati', mapel: 'Bahasa Indonesia', kode: 'BIN-SH' },
   { no: 2, nama: 'Bakhtiar Rifai, SE', mapel: 'IPS', kode: 'IPS-BR' },

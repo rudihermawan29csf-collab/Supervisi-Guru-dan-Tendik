@@ -6,11 +6,12 @@ import { TENDIK_RECORDS, EXTRA_RECORDS } from '../constants';
 interface MainDashboardViewProps {
   records: TeacherRecord[];
   settings: AppSettings;
+  onRefresh?: () => void;
 }
 
 type DashboardTab = 'adm-guru' | 'pembelajaran' | 'tendik' | 'ekstra';
 
-const MainDashboardView: React.FC<MainDashboardViewProps> = ({ records, settings }) => {
+const MainDashboardView: React.FC<MainDashboardViewProps> = ({ records, settings, onRefresh }) => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('pembelajaran');
 
   const getPredikat = (score: number) => {
@@ -90,7 +91,10 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ records, settings
           ))}
         </div>
         <div className="flex gap-2">
-            <button onClick={() => alert('Sesi dashboard diperbarui!')} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-[9px] uppercase shadow-sm">Simpan Perubahan</button>
+            <button onClick={onRefresh} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-[9px] uppercase shadow-sm flex items-center transition-all hover:bg-indigo-700">
+               <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+               Refresh Data
+            </button>
             <button onClick={exportPDF} className="px-3 py-1.5 bg-red-600 text-white rounded-lg font-bold text-[9px] uppercase shadow-sm">PDF</button>
             <button onClick={exportExcel} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-[9px] uppercase shadow-sm">Excel (.xls)</button>
         </div>
@@ -137,6 +141,11 @@ const MainDashboardView: React.FC<MainDashboardViewProps> = ({ records, settings
                   </tr>
                 );
               })}
+              {dashboardData.items.length === 0 && (
+                <tr>
+                   <td colSpan={3} className="px-6 py-10 text-center text-slate-400 italic text-xs uppercase tracking-widest">Belum ada data supervisi yang terverifikasi (Skor > 0)</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

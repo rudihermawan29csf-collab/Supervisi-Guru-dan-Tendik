@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { AppSettings, DateRange, TeacherRecord, SupervisionStatus } from '../types';
+import { DATA_PTT } from '../constants';
 
 interface SettingsViewProps {
   settings: AppSettings;
@@ -75,37 +76,6 @@ const ScheduleRangeInput: React.FC<{
 );
 
 const TugasTambahanTU = ({ onSave }: { onSave: () => void }) => {
-  const dataPTT = [
-    {
-      no: 1, nama: "Imam Safi'i", jabatan: "PTT", 
-      tugas: [
-        { label: "Koordinator Tenaga Administrasi Sekolah", detail: "Struktur Organisasi Sekolah" },
-        { label: "Pelaksana Urusan Administrasi Kepegawaian", detail: "File Guru dan Karyawan, Papan Data Ketenagaan" },
-        { label: "Proktor Kegiatan Evaluasi dan Penilaian", detail: "Pelaksana Asesmen Kompetensi Minimum, Kegiatan Evaluasi lainnya" },
-        { label: "Operator PPDB", detail: "Melaksanakan kegiatan PPDB Online" },
-        { label: "Operator Dapodik", detail: "Pelaksana Dapodik, E-Rapor, Pembuat Nomor Induk Siswa" },
-        { label: "Urusan Mutasi Peserta Didik", detail: "Penyelesaian Mutasi Siswa, Buku Klaper" }
-      ]
-    },
-    {
-      no: 2, nama: "Mansyur Rohmad", jabatan: "PTT",
-      tugas: [
-        { label: "Pelaksana Urusan Administrasi Humas", detail: "Buku Absensi GTT/PTT, Membantu pelaksanaan kegiatan Humas" },
-        { label: "Pelaksana Urusan Administrasi Kesiswaan", detail: "Pengisian Identitas Buku Induk, Data Nilai, Penempelan Foto, Raport" },
-        { label: "Pelaksana Urusan Sarana dan Prasarana", detail: "Koordinator Perawatan Sarana Sekolah, Petugas Perpustakaan" }
-      ]
-    },
-    {
-      no: 3, nama: "Rayi Putri Lestari, S.Pd.", jabatan: "PTT",
-      tugas: [
-        { label: "Administrasi Persuratan dan Pengarsipan", detail: "Agenda, Penerima Surat, SPPD, Ekspedisi, Filing, Buku Tamu, Bel PBM, Jurnal Guru" },
-        { label: "Pengelola Urusan KIP/PIP/PKH", detail: "Terlaksananya proses PIP bagi peserta didik" },
-        { label: "Administrasi Kurikulum", detail: "Arsip Ijazah, Legalisir Ijazah" },
-        { label: "Staf Kepegawaian", detail: "Buku DUK, Kenaikan Berkala, Masa Purna Tugas" }
-      ]
-    }
-  ];
-
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fadeIn">
       <div className="p-6 border-b bg-slate-50 flex justify-between items-center no-print">
@@ -127,7 +97,7 @@ const TugasTambahanTU = ({ onSave }: { onSave: () => void }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-[11px]">
-            {dataPTT.map((person) => (
+            {DATA_PTT.map((person) => (
               <React.Fragment key={person.no}>
                 {person.tugas.map((t, idx) => (
                   <tr key={`${person.no}-${idx}`} className="hover:bg-slate-50 transition-colors">
@@ -136,13 +106,13 @@ const TugasTambahanTU = ({ onSave }: { onSave: () => void }) => {
                         <td rowSpan={person.tugas.length} className="px-4 py-4 text-center font-bold text-slate-400 align-top border border-slate-100">{person.no}</td>
                         <td rowSpan={person.tugas.length} className="px-6 py-4 align-top border border-slate-100">
                           <div className="font-bold text-slate-900 leading-tight">{person.nama}</div>
-                          <div className="text-[10px] text-slate-500 font-mono mt-1">NIP. -</div>
+                          <div className="text-[10px] text-slate-500 font-mono mt-1">NIP. {person.nip}</div>
                         </td>
                         <td rowSpan={person.tugas.length} className="px-4 py-4 text-center font-bold text-blue-600 align-top border border-slate-100">{person.jabatan}</td>
                       </>
                     )}
-                    <td className="px-6 py-3 text-slate-700 border border-slate-100">
-                       <span className="text-blue-500 mr-2">{idx + 1}.</span> {t.label}
+                    <td className="px-6 py-3 text-slate-700 border border-slate-100 font-medium">
+                       {t.label}
                     </td>
                     <td className="px-6 py-3 text-slate-500 italic border border-slate-100">
                        {t.detail}

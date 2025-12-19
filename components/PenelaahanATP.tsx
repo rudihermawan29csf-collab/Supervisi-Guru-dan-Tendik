@@ -140,7 +140,7 @@ const PenelaahanATP: React.FC<Props> = ({ settings, records, instrumentResults, 
               <th colSpan={3} className="px-2 py-2 border border-slate-700">Skor</th>
               <th rowSpan={2} className="px-4 py-3 border border-slate-700 text-left">Catatan</th>
             </tr>
-            <tr className="bg-slate-800 text-[8px]">
+            <tr className="bg-slate-800 text-white text-[8px]">
               <th className="border border-slate-700 px-1 py-1">2</th>
               <th className="border border-slate-700 px-1 py-1">1</th>
               <th className="border border-slate-700 px-1 py-1">0</th>
@@ -148,16 +148,16 @@ const PenelaahanATP: React.FC<Props> = ({ settings, records, instrumentResults, 
           </thead>
           <tbody>
             {ITEMS.map((item, idx) => (
-              <tr key={idx} className="hover:bg-slate-50">
+              <tr key={idx} className="hover:bg-slate-50 transition-colors">
                 <td className="px-2 py-2 border border-slate-200 text-center font-bold text-slate-400">{idx + 1}</td>
-                <td className="px-4 py-2 border border-slate-200 font-medium">{item}</td>
+                <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800">{item}</td>
                 {[2, 1, 0].map(v => (
                   <td key={v} className="px-1 py-2 border border-slate-200 text-center"><input type="radio" checked={scores[idx] === v} onChange={() => setScores(p => ({...p, [idx]: v}))} /></td>
                 ))}
                 <td className="px-2 py-2 border border-slate-200"></td>
               </tr>
             ))}
-            <tr className="bg-slate-50 font-black">
+            <tr className="bg-slate-50 font-black text-slate-900">
               <td colSpan={2} className="px-4 py-3 border border-slate-200 text-right uppercase">Skor: {stats.totalScore} ({stats.percentage}%)</td>
               <td colSpan={4} className="px-4 py-3 border border-slate-200 text-center text-indigo-700 uppercase italic">Predikat: {stats.kriteria}</td>
             </tr>
