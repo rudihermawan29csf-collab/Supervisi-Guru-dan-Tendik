@@ -3,167 +3,233 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { AppSettings, TeacherRecord, InstrumentResult } from '../types';
 
 const ITEMS = [
-  "Buku Nilai dan Perencanaan Penilaian",
-  "Melaksanakan Tes (Penilaian Kognitif) UH, MIDSEM, UAS",
+  "Buku Nilai dan Perencanaan Penilian",
+  "Melaksanakan Tes(Penilaian Kognitif) UH, MIDSEM, UAS",
   "Penugasan Terstruktur",
-  "Kegiatan Mandiri Tidak Terstruktur (KMTT)",
-  "Melaksanakan Penilaian Keterampilan (Psikomotorik)",
-  "Melaksanakan Penilaian Afektif / Sikap",
+  "Kegiatan Mandiri Tidak Terstruktur(KMTT)",
+  "Melaksanakan Penilaian Ketrampilan (Psikomotorik)",
+  "Melaksanakan Penilaian Afektif /Sikap",
   "Program dan Pelaksanaan Remedial/Pengayaan",
   "Analisis Hasil Ulangan",
-  "Bank Soal / Instrumen Tes"
+  "Bank Soal/Instrumen Tes"
 ];
+
+const formatIndonesianDate = (dateStr?: string) => {
+  if (!dateStr) return '..............................';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const getAutoFeedback = (percentage: number) => {
+  if (percentage >= 86) return {
+    catatan: "Sangat Memuaskan. Guru memiliki sistem penilaian yang komprehensif, mencakup aspek kognitif, afektif, dan psikomotorik secara seimbang.",
+    tindakLanjut: "Pertahankan sistem bank soal yang sudah ada dan tingkatkan kualitas soal ke arah HOTS (Higher Order Thinking Skills)."
+  };
+  if (percentage >= 71) return {
+    catatan: "Baik. Penilaian sudah dilakukan secara rutin, namun analisis hasil ulangan perlu didokumentasikan dengan lebih sistematis.",
+    tindakLanjut: "Fokus pada penguatan program remedial dan pengayaan yang lebih terukur berdasarkan hasil analisis nilai."
+  };
+  if (percentage >= 55) return {
+    catatan: "Cukup. Guru sudah melakukan penilaian dasar, namun belum mencakup seluruh aspek keterampilan dan sikap secara berkala.",
+    tindakLanjut: "Pendampingan dalam penyusunan instrumen penilaian nontes (rubrik) untuk mengukur kompetensi siswa secara lebih objektif."
+  };
+  return {
+    catatan: "Kurang. Perangkat penilaian belum memadai dan pelaksanaan evaluasi belajar belum terencana dengan baik.",
+    tindakLanjut: "Pembinaan intensif mengenai teknik penilaian kelas dan penyusunan instrumen tes yang valid serta reliabel."
+  };
+};
 
 interface Props {
   settings: AppSettings;
+  setSettings: (s: AppSettings) => void;
   records: TeacherRecord[];
   instrumentResults: Record<string, InstrumentResult>;
   onSave: (teacherId: number, type: string, semester: string, data: InstrumentResult) => void;
 }
 
-const getAutoText = (percentage: number) => {
-  if (percentage >= 91) return { c: "Sistem penilaian sangat terpadu dan objektif.", tl: "Pertahankan transparansi nilai kepada siswa." };
-  if (percentage >= 81) return { c: "Penilaian baik, instrumen tes sudah bervariasi.", tl: "Lakukan analisis butir soal lebih mendalam." };
-  if (percentage >= 71) return { c: "Cukup, buku nilai perlu dilengkapi dengan remedial.", tl: "Menyusun jadwal remedial secara berkala." };
-  return { c: "Perencanaan penilaian masih sangat kurang.", tl: "Menyusun bank soal dan rubrik penilaian." };
-};
-
-const PenilaianPembelajaran: React.FC<Props> = ({ settings, records, instrumentResults, onSave }) => {
+const PenilaianPembelajaran: React.FC<Props> = ({ settings, setSettings, records, instrumentResults, onSave }) => {
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | ''>('');
-  const [scores, setScores] = useState<Record<number, number>>(ITEMS.reduce((acc, _, idx) => ({ ...acc, [idx]: 1 }), {} as any));
+  const [scores, setScores] = useState<Record<number, number>>({});
+  const [presence, setPresence] = useState<Record<number, 'ada' | 'tidak'>>({});
+  const [remarks, setRemarks] = useState<Record<number, string>>({});
+  const [catatan, setCatatan] = useState('');
+  const [tindakLanjut, setTindakLanjut] = useState('');
 
   const selectedTeacher = useMemo(() => records.find(t => t.id === selectedTeacherId), [selectedTeacherId, records]);
 
   const stats = useMemo(() => {
-    const totalScore = (Object.values(scores) as number[]).reduce((sum, s) => sum + s, 0);
-    const maxScore = 36; // 9 items * max 4
-    const percentage = Math.round((totalScore / maxScore) * 100);
-    
+    const scoreValues = Object.values(scores).filter(v => typeof v === 'number') as number[];
+    const totalScore = scoreValues.reduce((sum, s) => sum + s, 0);
+    const maxScore = 36; 
+    const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
     let kriteria = 'Kurang';
-    if (percentage >= 91) kriteria = 'Sangat Baik';
-    else if (percentage >= 81) kriteria = 'Baik';
-    else if (percentage >= 71) kriteria = 'Cukup';
-
-    const auto = getAutoText(percentage);
-    return { totalScore, maxScore, percentage, kriteria, auto };
+    if (percentage >= 86) kriteria = 'Sangat Baik';
+    else if (percentage >= 71) kriteria = 'Baik';
+    else if (percentage >= 55) kriteria = 'Cukup';
+    return { totalScore, maxScore, percentage, kriteria };
   }, [scores]);
+
+  useEffect(() => {
+    if (Object.keys(scores).length > 0) {
+      const feedback = getAutoFeedback(stats.percentage);
+      setCatatan(feedback.catatan);
+      setTindakLanjut(feedback.tindakLanjut);
+    }
+  }, [stats.percentage]);
 
   useEffect(() => {
     if (selectedTeacherId !== '') {
       const key = `${selectedTeacherId}-penilaian-${settings.semester}`;
       const saved = instrumentResults[key];
-      if (saved) setScores(saved.scores as any);
-      else setScores(ITEMS.reduce((acc, _, idx) => ({ ...acc, [idx]: 1 }), {} as any));
+      if (saved) {
+        setScores(saved.scores as any || {});
+        setRemarks(saved.remarks || {});
+        setCatatan(saved.catatan || '');
+        setTindakLanjut(saved.tindakLanjut || '');
+        const newPresence: Record<number, 'ada' | 'tidak'> = {};
+        ITEMS.forEach((_, idx) => {
+           if (saved.scores[idx] !== undefined) newPresence[idx] = 'ada';
+           else newPresence[idx] = 'tidak';
+        });
+        setPresence(newPresence);
+      } else {
+        setScores({}); setPresence({}); setRemarks({}); setCatatan(''); setTindakLanjut('');
+      }
     }
   }, [selectedTeacherId, settings.semester, instrumentResults]);
 
-  const handleSave = () => {
-    if (selectedTeacherId === '') return alert('Pilih guru terlebih dahulu');
-    onSave(selectedTeacherId, 'penilaian', settings.semester, {
-      scores,
-      remarks: {},
-      catatan: stats.auto.c,
-      tindakLanjut: stats.auto.tl
-    });
+  const handleScoreChange = (idx: number, val: number) => {
+    setScores(prev => ({ ...prev, [idx]: val }));
+    setPresence(prev => ({ ...prev, [idx]: 'ada' }));
+    let autoRem = "";
+    if (val === 4) autoRem = "Sangat Memadai / Terencana";
+    else if (val === 3) autoRem = "Memadai / Rutin";
+    else if (val === 2) autoRem = "Kurang Memadai";
+    else autoRem = "Sangat Kurang / Tidak Jelas";
+    setRemarks(prev => ({ ...prev, [idx]: autoRem }));
   };
 
-  const displayDate = useMemo(() => {
-    const dateToUse = selectedTeacher?.tanggal || settings.tanggalCetak;
-    return new Date(dateToUse).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
-  }, [selectedTeacher, settings.tanggalCetak]);
+  const handleSave = () => {
+    if (selectedTeacherId === '') return alert('Pilih guru terlebih dahulu');
+    onSave(selectedTeacherId, 'penilaian', settings.semester, { scores, remarks, catatan, tindakLanjut });
+    alert('Hasil penilaian pembelajaran berhasil disimpan!');
+  };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
-      <div className="flex flex-wrap justify-between items-center gap-4 no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+    <div className="space-y-6 animate-fadeIn pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-center no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-4">
         <select value={selectedTeacherId} onChange={(e) => setSelectedTeacherId(Number(e.target.value))} className="px-4 py-2 border rounded-xl font-bold text-blue-600 outline-none">
           <option value="">-- Pilih Guru --</option>
           {records.map(t => <option key={t.id} value={t.id}>{t.namaGuru}</option>)}
         </select>
-        <button onClick={handleSave} disabled={!selectedTeacher} className="px-5 py-2 bg-blue-600 text-white rounded-lg font-black text-[10px] uppercase shadow-lg disabled:opacity-50">Simpan Hasil</button>
+        <button onClick={handleSave} disabled={!selectedTeacher} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-black text-[10px] uppercase shadow-lg">Simpan Hasil</button>
       </div>
 
-      <div id="penilaian-area" className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-        <h1 className="text-center text-xl font-black uppercase mb-4 border-b-2 border-slate-900 pb-2 tracking-tight">Penilaian Pembelajaran</h1>
-        
-        <div className="grid grid-cols-2 gap-6 text-[10px] font-bold uppercase mb-8">
-          <div className="space-y-2">
-            <div className="flex"><span className="w-32 text-slate-500">Nama Guru</span><span>: {selectedTeacher?.namaGuru || '-'}</span></div>
-            <div className="flex"><span className="w-32 text-slate-500">NIP</span><span>: {selectedTeacher?.nip || '-'}</span></div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex"><span className="w-32 text-slate-500">Mata Pelajaran</span><span>: {selectedTeacher?.mataPelajaran || '-'}</span></div>
-            <div className="flex"><span className="w-32 text-slate-500">Hari / Tanggal</span><span>: {selectedTeacher?.hari ? `${selectedTeacher.hari}, ${selectedTeacher.tanggal}` : '-'}</span></div>
-          </div>
+      <div className="bg-white shadow-xl border border-slate-300 p-12 max-w-5xl mx-auto text-gray-900 print:shadow-none print:border-none print:p-0">
+        <div className="text-center mb-8 border-b-4 border-double border-slate-900 pb-2 font-black uppercase">
+          <h1 className="leading-none text-lg">INSTRUMEN SUPERVISI PENILAIAN PEMBELAJARAN</h1>
         </div>
 
-        <table className="w-full border-collapse text-[10px] mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-1 text-sm font-bold mb-8">
+           <div className="flex items-start"><span className="w-40">Nama Sekolah</span><span className="mr-4">:</span><span className="uppercase">{settings.namaSekolah}</span></div>
+           <div className="flex items-start"><span className="w-40">Nama Guru</span><span className="mr-4">:</span><span className="uppercase">{selectedTeacher?.namaGuru || '...................'}</span></div>
+           <div className="flex items-start"><span className="w-40">Mata Pelajaran</span><span className="mr-4">:</span><span className="uppercase">{selectedTeacher?.mataPelajaran || '...................'}</span></div>
+        </div>
+
+        <table className="w-full border-collapse border-2 border-slate-900 text-[10px]">
           <thead>
-            <tr className="bg-slate-900 text-white uppercase">
-              <th rowSpan={2} className="px-2 py-3 border border-slate-700 w-8">No</th>
-              <th rowSpan={2} className="px-4 py-3 border border-slate-700 text-left">Aspek Penilaian</th>
-              <th colSpan={4} className="px-2 py-2 border border-slate-700 text-center">Skor (1-4)</th>
+            <tr className="bg-slate-100 font-black uppercase text-center">
+              <th rowSpan={2} className="border-2 border-slate-900 p-2 w-10">No</th>
+              <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left">PERTANYAAN</th>
+              <th colSpan={2} className="border-2 border-slate-900 p-1">Pemantauan</th>
+              <th colSpan={4} className="border-2 border-slate-900 p-1">Penilaian (1-4)</th>
+              <th rowSpan={2} className="border-2 border-slate-900 p-2 w-32 text-left">Keterangan</th>
             </tr>
-            <tr className="bg-slate-800 text-white text-[8px] text-center">
-              <th className="border border-slate-700">4</th><th className="border border-slate-700">3</th>
-              <th className="border border-slate-700">2</th><th className="border border-slate-700">1</th>
+            <tr className="bg-slate-50 font-bold text-center uppercase">
+              <th className="border-2 border-slate-900 p-1 w-10">ada</th>
+              <th className="border-2 border-slate-900 p-1 w-10">tidak</th>
+              <th className="border-2 border-slate-900 p-1 w-8">4</th>
+              <th className="border-2 border-slate-900 p-1 w-8">3</th>
+              <th className="border-2 border-slate-900 p-1 w-8">2</th>
+              <th className="border-2 border-slate-900 p-1 w-8">1</th>
             </tr>
           </thead>
           <tbody>
             {ITEMS.map((item, idx) => (
               <tr key={idx} className="hover:bg-slate-50">
-                <td className="px-2 py-2 border border-slate-200 text-center font-bold text-slate-400">{idx + 1}</td>
-                <td className="px-4 py-2 border border-slate-200 font-medium">{item}</td>
-                {[4, 3, 2, 1].map(v => (
-                  <td key={v} className="px-1 py-2 border border-slate-200 text-center">
-                    <input type="radio" checked={scores[idx] === v} onChange={() => setScores(p => ({...p, [idx]: v}))} />
+                <td className="border-2 border-slate-900 p-2 text-center font-bold">{idx + 1}</td>
+                <td className="border-2 border-slate-900 p-2">{item}</td>
+                <td className="border-2 border-slate-900 p-1 text-center cursor-pointer no-print font-black" onClick={() => setPresence(p => ({...p, [idx]: 'ada'}))}>{presence[idx] === 'ada' ? 'v' : ''}</td>
+                <td className="border-2 border-slate-900 p-1 text-center cursor-pointer no-print font-black" onClick={() => {setPresence(p => ({...p, [idx]: 'tidak'})); setScores(s => {const ns={...s}; delete ns[idx]; return ns;})}}>{presence[idx] === 'tidak' ? 'v' : ''}</td>
+                {[4,3,2,1].map(val => (
+                  <td key={val} className="border-2 border-slate-900 p-1 text-center cursor-pointer no-print" onClick={() => handleScoreChange(idx, val)}>
+                    <div className={`w-4 h-4 mx-auto border border-slate-900 flex items-center justify-center ${scores[idx] === val ? 'bg-slate-800 text-white font-black' : 'bg-white'}`}>
+                      {scores[idx] === val && "v"}
+                    </div>
                   </td>
                 ))}
+                <td className="border-2 border-slate-900 p-1 text-center hidden print:table-cell font-bold">{presence[idx] === 'ada' ? 'v' : ''}</td>
+                <td className="border-2 border-slate-900 p-1 text-center hidden print:table-cell font-bold">{presence[idx] === 'tidak' ? 'v' : ''}</td>
+                {[4,3,2,1].map(val => <td key={`p-${val}`} className="border-2 border-slate-900 p-1 text-center hidden print:table-cell font-bold">{scores[idx] === val ? 'v' : ''}</td>)}
+                <td className="border-2 border-slate-900 p-1 italic text-[9px]">{remarks[idx]}</td>
               </tr>
             ))}
+            <tr className="bg-slate-100 font-black">
+              <td colSpan={2} className="border-2 border-slate-900 p-2 text-right uppercase">Skor Total (Max: 36)</td>
+              <td colSpan={2} className="border-2 border-slate-900"></td>
+              <td colSpan={4} className="border-2 border-slate-900 p-2 text-center text-blue-700">{stats.totalScore}</td>
+              <td className="border-2 border-slate-900 text-center text-emerald-700">{stats.percentage}% - {stats.kriteria}</td>
+            </tr>
           </tbody>
         </table>
 
-        {/* Tabel Ringkasan Nilai */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-3 bg-white rounded-lg border">
-               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Skor Perolehan</p>
-               <p className="text-2xl font-black text-slate-800">{stats.totalScore}</p>
-            </div>
-            <div className="p-3 bg-white rounded-lg border">
-               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Skor Maksimal</p>
-               <p className="text-2xl font-black text-slate-800">{stats.maxScore}</p>
-            </div>
-            <div className="p-3 bg-blue-600 rounded-lg shadow-lg">
-               <p className="text-[10px] font-black text-blue-100 uppercase mb-1">Nilai Akhir (%)</p>
-               <p className="text-2xl font-black text-white">{stats.percentage}%</p>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-between items-center px-2">
-             <p className="text-[10px] font-bold text-slate-500 italic">* Nilai Akhir = (Skor Perolehan / 36) x 100</p>
-             <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-slate-400">Predikat:</span>
-                <span className={`px-4 py-1 rounded-full text-[10px] font-black text-white uppercase tracking-wider ${stats.percentage >= 91 ? 'bg-emerald-600' : stats.percentage >= 81 ? 'bg-blue-600' : stats.percentage >= 71 ? 'bg-amber-500' : 'bg-red-600'}`}>{stats.kriteria}</span>
-             </div>
-          </div>
+        <div className="mt-6 border-2 border-slate-900 p-4 bg-slate-50">
+           <h3 className="text-xs font-black uppercase mb-2 underline">Kriteria Penilaian:</h3>
+           <div className="grid grid-cols-2 gap-4 text-[10px] leading-tight">
+              <div className="space-y-1">
+                 <p className="font-bold uppercase underline">Bobot Skor (1-4):</p>
+                 <p>4: Sangat Baik / Selalu / Lengkap</p>
+                 <p>3: Baik / Sering / Cukup Lengkap</p>
+                 <p>2: Cukup / Jarang / Kurang Lengkap</p>
+                 <p>1: Kurang / Tidak Pernah / Tidak Lengkap</p>
+              </div>
+              <div className="space-y-1">
+                 <p className="font-bold uppercase underline">Predikat Hasil Akhir:</p>
+                 <p>86% - 100%: Sangat Baik (A)</p>
+                 <p>71% - 85%: Baik (B)</p>
+                 <p>55% - 70%: Cukup (C)</p>
+                 <p>Dibawah 55%: Kurang (D)</p>
+              </div>
+           </div>
         </div>
 
-        <div className="space-y-4 mb-12 text-[11px] font-bold uppercase tracking-tight">
-           <div className="border-b-2 border-dotted border-slate-400 pb-1">Catatan : <span className="font-normal italic lowercase text-slate-600">{stats.auto.c}</span></div>
-           <div className="border-b-2 border-dotted border-slate-400 pb-1">Tindak Lanjut : <span className="font-normal italic lowercase text-slate-600">{stats.auto.tl}</span></div>
+        <div className="mt-8 space-y-4">
+           <div className="border-b border-slate-400 pb-1">
+              <h3 className="text-sm font-bold uppercase tracking-tighter text-blue-700">Catatan :</h3>
+              <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium" />
+           </div>
+           <div className="border-b border-slate-400 pb-1">
+              <h3 className="text-sm font-bold uppercase tracking-tighter text-emerald-700">Tindak Lanjut :</h3>
+              <textarea value={tindakLanjut} onChange={e => setTindakLanjut(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium" />
+           </div>
         </div>
 
-        <div className="flex justify-between items-start text-xs mt-12 font-bold uppercase">
-          <div className="text-center w-64">
-             <p className="mb-20">Mengetahui,<br/>Kepala {settings.namaSekolah}</p>
-             <p className="underline font-black">{settings.namaKepalaSekolah}</p>
-             <p className="text-[10px] font-mono">NIP. {settings.nipKepalaSekolah}</p>
-          </div>
-          <div className="text-center w-64">
-             <p className="mb-20">Mojokerto, {displayDate}<br/>Guru Mata Pelajaran</p>
-             <p className="underline font-black">{selectedTeacher?.namaGuru || '................................'}</p>
-             <p className="text-[10px]">NIP. {selectedTeacher?.nip || '-'}</p>
-          </div>
+        <div className="mt-12 grid grid-cols-2 text-sm font-bold tracking-tight text-center">
+            <div className="flex flex-col justify-between h-36">
+               <p className="uppercase leading-tight">Pengawas / Supervisor</p>
+               <div>
+                  <p className="underline uppercase font-black text-blue-800">{settings.namaPengawas}</p>
+                  <p className="font-mono text-[11px] uppercase mt-1">NIP. {settings.nipPengawas}</p>
+               </div>
+            </div>
+            <div className="flex flex-col justify-between h-36">
+               <p className="leading-tight uppercase">Mojokerto, {formatIndonesianDate(selectedTeacher?.tanggalPemb)}<br/>Guru Mata Pelajaran</p>
+               <div>
+                  <p className="underline uppercase font-black">{selectedTeacher?.namaGuru || '________________'}</p>
+                  <p className="font-mono text-[11px] uppercase">NIP. {selectedTeacher?.nip || '................'}</p>
+               </div>
+            </div>
         </div>
       </div>
     </div>

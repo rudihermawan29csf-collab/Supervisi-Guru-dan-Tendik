@@ -17,6 +17,9 @@ export interface InstrumentResult {
   tindakLanjut?: string;
   materi?: string;
   kelasSemester?: string;
+  answers?: Record<number, string>; // Untuk pertanyaan post-observasi
+  kesanUmum?: string;
+  saran?: string;
   // Untuk menyimpan status centang di tab Tindak Lanjut Action
   actions?: {
     contoh: boolean;
@@ -30,6 +33,8 @@ export interface InstrumentResult {
 export interface AppSettings {
   namaKepalaSekolah: string;
   nipKepalaSekolah: string;
+  namaPengawas: string;
+  nipPengawas: string;
   tahunPelajaran: string;
   semester: 'Ganjil' | 'Genap';
   namaSekolah: string;
@@ -49,7 +54,9 @@ export interface TeacherRecord {
   id: number;
   no: number;
   hari: string;
-  tanggal: string;
+  tanggal: string; // Legacy / Default
+  tanggalAdm?: string; // Tanggal supervisi administrasi
+  tanggalPemb?: string; // Tanggal supervisi pembelajaran
   namaGuru: string;
   nip?: string;
   pangkatGolongan?: string;
@@ -113,6 +120,8 @@ export type ViewType =
   | 'inst-atp' 
   | 'inst-modul'
   | 'inst-ekstra'
+  | 'inst-post-observasi'
+  | 'inst-hasil-observasi'
   | 'tendik-sekolah'
   | 'tendik-ketenagaan'
   | 'tendik-perlengkapan'
@@ -131,7 +140,17 @@ export type ViewType =
   | 'results-followup-program'
   | 'results-followup-action'
   | 'results-tendik'
-  | 'results-extra';
+  | 'results-extra'
+  // NEW VIEW TYPES
+  | 'prog-akademik'
+  | 'prog-tendik'
+  | 'prog-extra'
+  | 'ptl-akademik'
+  | 'ptl-tendik'
+  | 'ptl-extra'
+  | 'lap-akademik'
+  | 'lap-tendik'
+  | 'lap-extra';
 
 export interface ScheduleRow {
   ke: string;

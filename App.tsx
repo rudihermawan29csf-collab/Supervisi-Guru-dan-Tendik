@@ -12,6 +12,8 @@ import PenilaianPembelajaran from './components/PenilaianPembelajaran';
 import PelaksanaanPembelajaran from './components/PelaksanaanPembelajaran';
 import PenelaahanATP from './components/PenelaahanATP';
 import TelaahModulAjar from './components/TelaahModulAjar';
+import PostObservationView from './components/PostObservationView';
+import ObservationResultsView from './components/ObservationResultsView';
 import InstrumentTendikView from './components/InstrumentTendikView';
 import InstrumentExtraView from './components/InstrumentExtraView';
 import SettingsView from './components/SettingsView';
@@ -26,6 +28,10 @@ import SupervisionLogView from './components/SupervisionLogView';
 import SupervisionRecapView from './components/SupervisionRecapView';
 import ProgramTindakLanjutView from './components/ProgramTindakLanjutView';
 import FollowUpActionView from './components/FollowUpActionView';
+
+// Import New Generic Document Components
+import ProgramDocView from './components/ProgramDocView';
+import LaporanDocView from './components/LaporanDocView';
 
 const INITIAL_EXTRA: ExtraRecord[] = [
   { id: 1, nama: 'Fahmi Wahyuni, S.Pd', nip: '-', hari: 'Senin', tgl: '23 Oktober 2025', pukul: '10.00 - 11.00', ekstra: 'OSN Bahasa Indonesia', tempat: 'Ruang Kepala Sekolah', supervisor: 'Didik Sulistyo, M.M.Pd.', semester: 'Ganjil' },
@@ -54,13 +60,11 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    jadwal: true,
-    instrumenGuru: true,
-    instrumenTendik: true,
-    instrumenExtra: true,
-    tindakLanjut: true,
-    tindakLanjutTendik: true,
-    tindakLanjutExtra: true
+    perencanaan: true,
+    jadwal: false,
+    instrumen: false,
+    tindakLanjutMain: true,
+    laporanMain: true
   });
 
   const [selectedRecord, setSelectedRecord] = useState<TeacherRecord | null>(null);
@@ -70,6 +74,8 @@ const App: React.FC = () => {
     const defaults: AppSettings = {
       namaKepalaSekolah: 'Didik Sulistyo, M.M.Pd.',
       nipKepalaSekolah: '19660518 198901 1 002',
+      namaPengawas: 'LILIK HARIATI, S.Pd., M.Pd',
+      nipPengawas: '196203091984032013',
       tahunPelajaran: '2025/2026',
       semester: 'Ganjil',
       namaSekolah: 'SMPN 3 Pacet',
@@ -133,18 +139,7 @@ const App: React.FC = () => {
     setInstrumentResults(prev => ({ ...prev, [key]: data }));
     
     const maxScores: Record<string, number> = {
-      'administrasi': 26,
-      'pembelajaran': 76,
-      'penilaian': 36,
-      'atp': 24,
-      'modul': 48,
-      'sekolah': 100,
-      'ketenagaan': 100,
-      'perlengkapan': 100,
-      'perpustakaan': 100,
-      'lab-ipa': 100,
-      'lab-komputer': 100,
-      'kesiswaan': 100
+      'administrasi': 26, 'pembelajaran': 76, 'penilaian': 36, 'atp': 24, 'modul': 48, 'hasil-observasi': 70
     };
 
     const scoreArray = Object.values(data.scores).filter(v => typeof v === 'number') as number[];
@@ -164,39 +159,11 @@ const App: React.FC = () => {
       }
       return r;
     }));
-    alert('Data instrumen berhasil disimpan!');
   };
 
   const handleRefreshDashboard = useCallback(() => {
-    const updated = records.map(r => {
-      const semester = settings.semester;
-      const getVal = (type: string, max: number) => {
-        const key = `${r.id}-${type}-${semester}`;
-        if (instrumentResults[key]) {
-          const scores = Object.values(instrumentResults[key].scores).filter(v => typeof v === 'number') as number[];
-          return Math.round((scores.reduce((a, b) => a + b, 0) / max) * 100);
-        }
-        return null;
-      };
-
-      const nAdm = getVal('administrasi', 26);
-      const nPemb = getVal('pembelajaran', 76);
-      const nPen = getVal('penilaian', 36);
-      const nAtp = getVal('atp', 24);
-      const nMod = getVal('modul', 48);
-
-      return {
-        ...r,
-        nilaiAdm: nAdm !== null ? nAdm : r.nilaiAdm,
-        nilai: nPemb !== null ? nPemb : r.nilai,
-        nilaiPenilaian: nPen !== null ? nPen : r.nilaiPenilaian,
-        nilaiATP: nAtp !== null ? nAtp : r.nilaiATP,
-        nilaiModul: nMod !== null ? nMod : r.nilaiModul
-      };
-    });
-    setRecords(updated);
     alert('Sinkronisasi data berhasil!');
-  }, [records, instrumentResults, settings.semester]);
+  }, []);
 
   const handleSaveSingleRecord = (updatedRecord: TeacherRecord) => {
     setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
@@ -206,7 +173,7 @@ const App: React.FC = () => {
   const NavItem = ({ view, label, icon, activeColor = 'bg-blue-600' }: { view: ViewType, label: string, icon?: React.ReactNode, activeColor?: string }) => (
     <button 
       onClick={() => setActiveView(view)}
-      className={`w-full flex items-center justify-start text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeView === view ? `${activeColor} text-white shadow-lg` : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+      className={`w-full flex items-center justify-start text-left px-4 py-2 rounded-xl text-[11px] font-bold transition-all ${activeView === view ? `${activeColor} text-white shadow-lg` : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
     >
       {icon && <span className="mr-3 shrink-0">{icon}</span>}
       <span className="truncate">{label}</span>
@@ -228,98 +195,60 @@ const App: React.FC = () => {
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
         <div className="p-6 border-b border-slate-800 text-center bg-slate-950/50">
           <h1 className="text-base font-black leading-tight text-white tracking-tight">{settings.namaSekolah}</h1>
-          <p className="text-[10px] text-blue-400 font-black mt-1 tracking-widest italic uppercase">Supervisi Akademik</p>
+          <p className="text-[10px] text-blue-400 font-black mt-1 tracking-widest italic uppercase">Supervisi Pro</p>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2 scrollbar-hide">
-          <NavItem view="dashboard" label="Dashboard Utama" activeColor="bg-indigo-600" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 v2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1-0 01-1-1v-6zM10 5a1 1 0 011-1h2a1 v2a1 1 0 01-1 1h-2a1 1-0 01-1-1V5z" strokeWidth="2"/></svg>} />
-          <NavItem view="settings" label="Pengaturan Sistem" activeColor="bg-zinc-600" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572z" strokeWidth="2"/></svg>} />
+          <NavItem view="dashboard" label="Dashboard" activeColor="bg-indigo-600" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 v2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6zM10 5a1 1 0 011-1h2a1 v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V5z" strokeWidth="2"/></svg>} />
+          
+          <div className="bg-slate-800/40 rounded-2xl border border-slate-700/50 overflow-hidden pb-1">
+            <SectionHeader id="perencanaan" label="1. Program Kerja" color="text-indigo-400" />
+            {openSections.perencanaan && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="prog-akademik" label="Program Supervisi Akademik" activeColor="bg-indigo-600" />
+                <NavItem view="prog-tendik" label="Program Supervisi Tendik" activeColor="bg-indigo-600" />
+                <NavItem view="prog-extra" label="Program Supervisi Ekstra" activeColor="bg-indigo-600" />
+              </div>
+            )}
+          </div>
 
-          <div className="bg-blue-900/20 rounded-2xl border border-blue-500/10 overflow-hidden pb-1">
-            <SectionHeader id="jadwal" label="Jadwal Supervisi" color="text-blue-400" />
+          <div className="bg-slate-800/40 rounded-2xl border border-slate-700/50 overflow-hidden pb-1">
+            <SectionHeader id="jadwal" label="2. Jadwal & Instrumen" color="text-blue-400" />
             {openSections.jadwal && (
               <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="supervision-admin-guru" label="Administrasi Guru" activeColor="bg-blue-600" />
+                <NavItem view="supervision-admin-guru" label="Jadwal Administrasi Guru" activeColor="bg-blue-600" />
                 <NavItem view="supervision" label="Jadwal Pembelajaran Guru" activeColor="bg-blue-600" />
-                <NavItem view="schedule-admin" label="Supervisi Tendik" activeColor="bg-blue-600" />
-                <NavItem view="schedule-extra" label="Supervisi Ekstra" activeColor="bg-blue-600" />
-                <NavItem view="schedule" label="Jadwal Pelajaran Sekolah" activeColor="bg-blue-600" />
+                <NavItem view="schedule-admin" label="Jadwal Supervisi Tendik" activeColor="bg-blue-600" />
+                <NavItem view="schedule-extra" label="Jadwal Supervisi Ekstra" activeColor="bg-blue-600" />
+                <NavItem view="inst-administrasi" label="Instrumen Administrasi" activeColor="bg-emerald-600" />
+                <NavItem view="inst-pelaksanaan" label="Instrumen Pelaksanaan" activeColor="bg-emerald-600" />
               </div>
             )}
           </div>
 
-          <div className="bg-emerald-900/20 rounded-2xl border border-emerald-500/10 overflow-hidden pb-1">
-            <SectionHeader id="instrumenGuru" label="Instrumen Guru" color="text-emerald-400" />
-            {openSections.instrumenGuru && (
+          <div className="bg-slate-800/40 rounded-2xl border border-slate-700/50 overflow-hidden pb-1">
+            <SectionHeader id="tindakLanjutMain" label="3. Program Tindak Lanjut" color="text-amber-400" />
+            {openSections.tindakLanjutMain && (
               <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="inst-administrasi" label="Administrasi Pembelajaran" activeColor="bg-emerald-600" />
-                <NavItem view="inst-pelaksanaan" label="Pelaksanaan Pembelajaran" activeColor="bg-emerald-600" />
-                <NavItem view="inst-penilaian" label="Penilaian Pembelajaran" activeColor="bg-emerald-600" />
-                <NavItem view="inst-atp" label="Penelaahan ATP" activeColor="bg-emerald-600" />
-                <NavItem view="inst-modul" label="Telaah Modul Ajar" activeColor="bg-emerald-600" />
+                <NavItem view="ptl-akademik" label="PTL Akademik (Guru)" activeColor="bg-amber-600" />
+                <NavItem view="ptl-tendik" label="PTL Tendik" activeColor="bg-amber-600" />
+                <NavItem view="ptl-extra" label="PTL Ekstrakurikuler" activeColor="bg-amber-600" />
               </div>
             )}
           </div>
 
-          <div className="bg-orange-900/20 rounded-2xl border border-orange-500/10 overflow-hidden pb-1">
-            <SectionHeader id="instrumenTendik" label="Instrumen Tendik" color="text-orange-400" />
-            {openSections.instrumenTendik && (
+          <div className="bg-slate-800/40 rounded-2xl border border-slate-700/50 overflow-hidden pb-1">
+            <SectionHeader id="laporanMain" label="4. Laporan Akhir" color="text-rose-400" />
+            {openSections.laporanMain && (
               <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="tendik-sekolah" label="Administrasi Sekolah" activeColor="bg-orange-600" />
-                <NavItem view="tendik-ketenagaan" label="Administrasi Ketenagaan" activeColor="bg-orange-600" />
-                <NavItem view="tendik-perlengkapan" label="Administrasi Perlengkapan" activeColor="bg-orange-600" />
-                <NavItem view="tendik-perpustakaan" label="Administrasi Perpustakaan" activeColor="bg-orange-600" />
-                <NavItem view="tendik-lab-ipa" label="Laboratorium IPA" activeColor="bg-orange-600" />
-                <NavItem view="tendik-lab-komputer" label="Laboratorium Komputer" activeColor="bg-orange-600" />
-                <NavItem view="tendik-kesiswaan" label="Administrasi Kesiswaan" activeColor="bg-orange-600" />
+                <NavItem view="lap-akademik" label="Laporan Supervisi Akademik" activeColor="bg-rose-600" />
+                <NavItem view="lap-tendik" label="Laporan Supervisi Tendik" activeColor="bg-rose-600" />
+                <NavItem view="lap-extra" label="Laporan Supervisi Ekstra" activeColor="bg-rose-600" />
               </div>
             )}
           </div>
 
-          <div className="bg-purple-900/20 rounded-2xl border border-purple-500/10 overflow-hidden pb-1">
-            <SectionHeader id="instrumenExtra" label="Instrumen Ekstrakurikuler" color="text-purple-400" />
-            {openSections.instrumenExtra && (
-              <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="inst-ekstra" label="Kegiatan Ekstrakurikuler" activeColor="bg-purple-600" />
-              </div>
-            )}
-          </div>
-
-          <div className="bg-rose-900/20 rounded-2xl border border-rose-500/10 overflow-hidden pb-1">
-            <SectionHeader id="tindakLanjut" label="Hasil Supervisi Guru" color="text-rose-400" />
-            {openSections.tindakLanjut && (
-              <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="results-recap" label="Rekap Supervisi Akademik" activeColor="bg-rose-600" />
-                <NavItem view="results-followup-program" label="Program Tindak Lanjut" activeColor="bg-rose-600" />
-                <NavItem view="results-followup-action" label="Tindak Lanjut Action" activeColor="bg-rose-600" />
-                <NavItem view="results-administrasi" label="Hasil Supervisi Administrasi" activeColor="bg-rose-600" />
-                <NavItem view="results-learning" label="Hasil Supervisi Pembelajaran" activeColor="bg-rose-600" />
-                <NavItem view="results-penilaian" label="Hasil Penilaian Pembelajaran" activeColor="bg-rose-600" />
-                <NavItem view="results-atp" label="Hasil Penelaahan ATP" activeColor="bg-rose-600" />
-                <NavItem view="results-modul" label="Hasil Telaah Modul Ajar" activeColor="bg-rose-600" />
-                <NavItem view="results-analysis" label="Analisis Hasil Supervisi" activeColor="bg-rose-600" />
-                <NavItem view="results-log" label="Catatan Pelaksanaan" activeColor="bg-rose-600" />
-              </div>
-            )}
-          </div>
-
-          <div className="bg-cyan-900/20 rounded-2xl border border-cyan-500/10 overflow-hidden pb-1">
-            <SectionHeader id="tindakLanjutTendik" label="Hasil Supervisi Tendik" color="text-cyan-400" />
-            {openSections.tindakLanjutTendik && (
-              <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="results-tendik" label="Hasil Supervisi Tendik Terpadu" activeColor="bg-cyan-600" />
-              </div>
-            )}
-          </div>
-
-          <div className="bg-purple-900/20 rounded-2xl border border-purple-500/10 overflow-hidden pb-1">
-            <SectionHeader id="tindakLanjutExtra" label="Hasil Supervisi Ekstra" color="text-purple-400" />
-            {openSections.tindakLanjutExtra && (
-              <div className="px-1 space-y-0.5 animate-slideDown">
-                <NavItem view="results-extra" label="Hasil Supervisi Ekstrakurikuler" activeColor="bg-purple-600" />
-              </div>
-            )}
-          </div>
+          <NavItem view="settings" label="Pengaturan" activeColor="bg-slate-700" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572z" strokeWidth="2"/></svg>} />
         </nav>
       </aside>
 
@@ -329,53 +258,39 @@ const App: React.FC = () => {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 text-slate-500 lg:hidden">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" strokeWidth="2"/></svg>
             </button>
-            <h2 className="ml-4 text-xs font-black text-slate-800 tracking-tight truncate uppercase">
-              {activeView.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            <h2 className="ml-4 text-[10px] font-black text-slate-800 tracking-tight truncate uppercase">
+              Administrator • {settings.tahunPelajaran} • SMST {settings.semester}
             </h2>
-          </div>
-          <div className="flex items-center space-x-3">
-             <div className="text-right">
-                <p className="text-[11px] font-black text-slate-900 leading-none uppercase">{settings.namaKepalaSekolah}</p>
-                <p className="text-[10px] text-blue-600 font-bold mt-1 uppercase">TP {settings.tahunPelajaran} • SMST {settings.semester}</p>
-             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           <div className="max-w-6xl mx-auto">
-            {activeView === 'dashboard' && <MainDashboardView records={records} settings={settings} onRefresh={handleRefreshDashboard} />}
+            {activeView === 'dashboard' && <MainDashboardView records={records} settings={settings} />}
             {activeView === 'settings' && <SettingsView settings={settings} setSettings={setSettings} records={records} setRecords={handleUpdateRecords} />}
+            
+            {/* 1-3. PROGRAM VIEWS */}
+            {activeView === 'prog-akademik' && <ProgramDocView type="akademik" settings={settings} records={records} />}
+            {activeView === 'prog-tendik' && <ProgramDocView type="tendik" settings={settings} adminRecords={adminRecords} />}
+            {activeView === 'prog-extra' && <ProgramDocView type="extra" settings={settings} extraRecords={extraRecords} />}
+
+            {/* JADWAL & INSTRUMEN (EXISTING) */}
             {activeView === 'supervision-admin-guru' && <AdminSupervisionView records={records} onUpdateRecords={handleUpdateRecords} settings={settings} onSelect={setSelectedRecord} setSettings={setSettings} />}
             {activeView === 'supervision' && <SupervisionView records={records} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSelect={setSelectedRecord} onUpdateRecords={handleUpdateRecords} settings={settings} setSettings={setSettings} />}
             {activeView === 'schedule-extra' && <ScheduleExtraView settings={settings} setSettings={setSettings} extraRecords={extraRecords} setExtraRecords={setExtraRecords} teacherRecords={records} />}
             {activeView === 'schedule-admin' && <ScheduleAdminView settings={settings} setSettings={setSettings} adminRecords={adminRecords} setAdminRecords={setAdminRecords} teacherRecords={records} />}
-            {activeView === 'schedule' && <ScheduleView settings={settings} />}
-            {activeView === 'inst-administrasi' && <AdministrasiPembelajaran settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'inst-penilaian' && <PenilaianPembelajaran settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'inst-pelaksanaan' && <PelaksanaanPembelajaran settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'inst-atp' && <PenelaahanATP settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'inst-modul' && <TelaahModulAjar settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'inst-ekstra' && <InstrumentExtraView settings={settings} extraRecords={extraRecords} instrumentResults={instrumentResults} onSave={(key, data) => setInstrumentResults(prev => ({...prev, [key]: data}))} />}
-            
-            {activeView === 'results-recap' && <SupervisionRecapView settings={settings} records={records} setSettings={setSettings} />}
-            {activeView === 'results-followup-program' && <ProgramTindakLanjutView settings={settings} records={records} setSettings={setSettings} />}
-            {activeView === 'results-followup-action' && <FollowUpActionView settings={settings} records={records} setSettings={setSettings} instrumentResults={instrumentResults} onSaveAction={(teacherId, actions) => {
-              const key = `${teacherId}-followup-actions-${settings.semester}`;
-              setInstrumentResults(prev => ({ ...prev, [key]: { scores: {}, remarks: {}, actions } }));
-            }} />}
+            {activeView === 'inst-administrasi' && <AdministrasiPembelajaran settings={settings} setSettings={setSettings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
+            {activeView === 'inst-pelaksanaan' && <PelaksanaanPembelajaran settings={settings} setSettings={setSettings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
 
-            {activeView === 'results-administrasi' && <AdminResultsView records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
-            {activeView === 'results-learning' && <GenericResultsView title="Hasil Supervisi Pembelajaran" type="pembelajaran" scoreKey="nilai" maxScore={76} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
-            {activeView === 'results-penilaian' && <GenericResultsView title="Hasil Penilaian Pembelajaran" type="penilaian" scoreKey="nilaiPenilaian" maxScore={36} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
-            {activeView === 'results-atp' && <GenericResultsView title="Hasil Penelaahan ATP" type="atp" scoreKey="nilaiATP" maxScore={24} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
-            {activeView === 'results-modul' && <GenericResultsView title="Hasil Telaah Modul Ajar" type="modul" scoreKey="nilaiModul" maxScore={48} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
-            {activeView === 'results-analysis' && <LearningAnalysisView settings={settings} records={records} instrumentResults={instrumentResults} setSettings={setSettings} />}
-            {activeView === 'results-log' && <SupervisionLogView settings={settings} records={records} instrumentResults={instrumentResults} setSettings={setSettings} />}
-            
-            {activeView === 'results-tendik' && <TendikResultsView adminRecords={adminRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
-            {activeView === 'results-extra' && <ExtraResultsView extraRecords={extraRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
+            {/* 4-6. TINDAK LANJUT VIEWS */}
+            {activeView === 'ptl-akademik' && <ProgramTindakLanjutView settings={settings} records={records} setSettings={setSettings} />}
+            {activeView === 'ptl-tendik' && <TendikResultsView adminRecords={adminRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
+            {activeView === 'ptl-extra' && <ExtraResultsView extraRecords={extraRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
 
-            {activeView.startsWith('tendik-') && <InstrumentTendikView type={activeView.replace('tendik-', '') as any} settings={settings} adminRecords={adminRecords} instrumentResults={instrumentResults} onSave={(key, data) => setInstrumentResults(prev => ({...prev, [key]: data}))} setSettings={setSettings} />}
+            {/* 7-9. LAPORAN VIEWS */}
+            {activeView === 'lap-akademik' && <LaporanDocView type="akademik" settings={settings} records={records} />}
+            {activeView === 'lap-tendik' && <LaporanDocView type="tendik" settings={settings} adminRecords={adminRecords} instrumentResults={instrumentResults} />}
+            {activeView === 'lap-extra' && <LaporanDocView type="extra" settings={settings} extraRecords={extraRecords} instrumentResults={instrumentResults} />}
           </div>
         </div>
       </main>

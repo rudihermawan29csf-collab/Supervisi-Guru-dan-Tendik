@@ -18,7 +18,7 @@ const DEFAULT_ADMIN_TEMPLATES = [
   { nama: 'Mansyur Rohmad', nip: '-', kegiatan: 'Administrasi Perlengkapan / sarpras', pukul: '08.30 - 09.30', tempat: 'Ruang Guru' },
   { nama: 'Mansyur Rohmad', nip: '-', kegiatan: 'Laboratorium Komputer', pukul: '10.00 - 11.00', tempat: 'Ruang Lab. Komputer' },
   { nama: 'Mochamad Ansori', nip: '-', kegiatan: 'Administrasi Perpustakaan', pukul: '07.30 - 08.30', tempat: 'Ruang Perpustakaan' },
-  { nama: 'Moch. Husain Rifai Hamzah, s.pd.', nip: '19920316 202012 1 011', kegiatan: 'Laboratorium IPA', pukul: '08.30 - 09.30', tempat: 'Ruang Lab. IPA' },
+  { nama: 'Mansyur Rohmad', nip: '-', kegiatan: 'Laboratorium IPA', pukul: '08.30 - 09.30', tempat: 'Ruang Lab. IPA' },
 ];
 
 const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecords, setAdminRecords, teacherRecords }) => {

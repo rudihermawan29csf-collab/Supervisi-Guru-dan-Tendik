@@ -31,9 +31,9 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
         record.mataPelajaran.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort((a, b) => {
-        if (!a.tanggal) return 1;
-        if (!b.tanggal) return -1;
-        return new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime();
+        if (!a.tanggalPemb) return 1;
+        if (!b.tanggalPemb) return -1;
+        return new Date(a.tanggalPemb).getTime() - new Date(b.tanggalPemb).getTime();
       });
   }, [records, searchQuery, activeSemester]);
 
@@ -42,39 +42,57 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
     const startDate = new Date(range.from);
     const endDate = new Date(range.to);
     let currentDate = new Date(startDate);
-    const uniqueTeachers = Array.from(new Set(records.map(r => r.namaGuru)));
-    const teacherBaseData = uniqueTeachers.map(name => records.find(r => r.namaGuru === name)!);
+    
+    // We want to keep existing records but update their tanggalPemb
     const otherSemesterRecords = records.filter(r => r.semester !== activeSemester);
-    const generated: TeacherRecord[] = [];
-    teacherBaseData.forEach((teacher, index) => {
+    const currentSemesterRecords = records.filter(r => r.semester === activeSemester);
+    
+    const generated: TeacherRecord[] = currentSemesterRecords.map((teacher, index) => {
       let foundSlot = false;
+      let iterations = 0;
       const teacherInitials = SCHEDULE_TEACHERS.find(t => t.nama === teacher.namaGuru)?.kode || '';
-      while (currentDate <= endDate && !foundSlot) {
-        if (currentDate.getDay() !== 0) {
+      
+      let targetDate = new Date(currentDate);
+
+      while (targetDate <= endDate && !foundSlot && iterations < 31) {
+        if (targetDate.getDay() !== 0) { // Bukan Minggu
           const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-          const dayNameStr = dayNames[currentDate.getDay()];
+          const dayNameStr = dayNames[targetDate.getDay()];
           const daySched = FULL_SCHEDULE.find(s => s.day.toUpperCase() === dayNameStr.toUpperCase());
+          
           if (daySched) {
             for (const row of daySched.rows) {
               if (row.classes) {
                 const teachingEntry = Object.entries(row.classes).find(([_, code]) => code.endsWith(teacherInitials));
                 if (teachingEntry) {
                   const [className] = teachingEntry;
-                  generated.push({ ...teacher, no: index + 1, tanggal: currentDate.toISOString().split('T')[0], hari: dayNameStr, kelas: className, jamKe: row.ke, status: SupervisionStatus.PENDING, semester: activeSemester });
                   foundSlot = true;
+                  const dateStr = targetDate.toISOString().split('T')[0];
+                  // Move global currentDate forward for next teacher
+                  currentDate = new Date(targetDate);
                   currentDate.setDate(currentDate.getDate() + 1);
-                  break;
+                  
+                  return { 
+                    ...teacher, 
+                    tanggalPemb: dateStr, 
+                    hari: dayNameStr, 
+                    kelas: className, 
+                    jamKe: row.ke, 
+                    status: SupervisionStatus.PENDING 
+                  };
                 }
               }
             }
           }
         }
-        if (!foundSlot) currentDate.setDate(currentDate.getDate() + 1);
+        targetDate.setDate(targetDate.getDate() + 1);
+        iterations++;
       }
-      if (!foundSlot) generated.push({ ...teacher, no: index + 1, semester: activeSemester });
+      return { ...teacher, status: SupervisionStatus.PENDING };
     });
+
     onUpdateRecords([...otherSemesterRecords, ...generated]);
-    alert(`Jadwal semester ${activeSemester} berhasil digenerate!`);
+    alert(`Jadwal pembelajaran semester ${activeSemester} berhasil digenerate!`);
   };
 
   const exportExcel = () => {
@@ -86,7 +104,7 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
     const blob = new Blob([header + tableHtml + footer], { type: 'application/vnd.ms-excel' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `Jadwal_Supervisi_${activeSemester}.xls`;
+    link.download = `Jadwal_Pembelajaran_${activeSemester}.xls`;
     link.click();
   };
 
@@ -97,7 +115,7 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
     const blob = new Blob([header + content + footer], { type: 'application/msword' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `Jadwal_Supervisi_${activeSemester}.doc`;
+    link.download = `Jadwal_Pembelajaran_${activeSemester}.doc`;
     link.click();
   };
 
@@ -105,7 +123,7 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
     const element = document.getElementById('supervision-export-content');
     const opt = { 
       margin: 10, 
-      filename: `Jadwal_Supervisi_${activeSemester}.pdf`, 
+      filename: `Jadwal_Pembelajaran_${activeSemester}.pdf`, 
       jsPDF: { orientation: 'landscape' } 
     };
     // @ts-ignore
@@ -160,7 +178,7 @@ const SupervisionView: React.FC<SupervisionViewProps> = ({ records, searchQuery,
               {filteredRecords.length > 0 ? filteredRecords.map((r, i) => (
                 <tr key={r.id}>
                   <td className="px-4 py-3 text-center border border-slate-800 font-bold">{i + 1}</td>
-                  <td className="px-6 py-3 font-bold text-slate-700 border border-slate-800">{r.hari}, {formatIndonesianDate(r.tanggal)}</td>
+                  <td className="px-6 py-3 font-bold text-slate-700 border border-slate-800">{r.hari}, {formatIndonesianDate(r.tanggalPemb || '')}</td>
                   <td className="px-6 py-3 font-bold text-slate-900 border border-slate-800">{r.namaGuru}</td>
                   <td className="px-6 py-3 text-blue-700 italic border border-slate-800">{r.mataPelajaran}</td>
                   <td className="px-4 py-3 text-slate-700 border border-slate-800 text-center font-bold">{r.kelas || '-'}</td>

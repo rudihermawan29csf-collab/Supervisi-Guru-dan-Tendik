@@ -26,20 +26,15 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
   const activeSemester = settings.semester;
   const filteredData = useMemo(() => extraRecords.filter(r => r.semester === activeSemester), [extraRecords, activeSemester]);
 
-  // Derived teacher list for the dropdown
   const teacherList = useMemo(() => {
-    // Fix: Explicitly type 'names' as string[] to avoid 'unknown' type inference issues
     const names: string[] = Array.from(new Set(teacherRecords.map(r => r.namaGuru))).sort() as string[];
-    // Fix: Explicitly type the list to resolve "unknown" type incompatibility in callback
     const list: { name: string; nip: string }[] = names.map((name: string) => {
       const record = teacherRecords.find(r => r.namaGuru === name);
       return { name, nip: record?.nip || '-' };
     });
-    // Add Fery Agus Pujianto if not in main list
     if (!names.includes('Fery Agus Pujianto')) {
       list.push({ name: 'Fery Agus Pujianto', nip: '-' });
     }
-    // Fix: Using inferred types for sort parameters to avoid type mismatch with the array elements
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [teacherRecords]);
 
@@ -104,7 +99,6 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
     
     const otherSemesterRecords = extraRecords.filter(r => r.semester !== activeSemester);
     const generated: ExtraRecord[] = DEFAULT_EXTRA_TEMPLATES.map((tpl, index) => {
-      // Logic for dates: assign sequentially but skip Sunday
       if (currentDate.getDay() === 0) currentDate.setDate(currentDate.getDate() + 1);
       if (currentDate > endDate) currentDate = new Date(startDate);
       
@@ -169,7 +163,9 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
     const opt = {
       margin: 10,
       filename: `Jadwal_Ekstra_${activeSemester}.pdf`,
-      jsPDF: { orientation: 'landscape' }
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
     // @ts-ignore
     html2pdf().set(opt).from(element).save();
@@ -188,47 +184,51 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
         <div className="flex flex-wrap gap-2">
           <button onClick={handleGenerateExtra} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-indigo-700">Generate Jadwal</button>
           <button onClick={() => handleOpenModal()} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-blue-700">+ Tambah</button>
-          <button onClick={exportPDF} className="px-3 py-2 bg-red-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-red-700">PDF</button>
+          <button onClick={exportPDF} className="px-6 py-2 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-red-700">
+             <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"/></svg>
+             Download PDF
+          </button>
           <button onClick={exportExcel} className="px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-emerald-700">Excel</button>
         </div>
       </div>
 
-      <section id="extra-export-content" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-        <div className="p-8 border-b bg-blue-600 text-white text-center">
-          <h2 className="text-xl font-bold">Jadwal Supervisi Kegiatan Ekstrakurikuler</h2>
-          <p className="text-sm font-medium opacity-90 mt-1">{settings.namaSekolah} ({activeSemester} {settings.tahunPelajaran})</p>
+      <section id="extra-export-content" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-8">
+        <div className="p-8 border-b-2 border-slate-900 bg-white text-slate-900 text-center mb-6">
+          <h2 className="text-xl font-black uppercase tracking-tight">Jadwal Supervisi Kegiatan Ekstrakurikuler</h2>
+          <p className="text-md font-bold opacity-90 mt-1 uppercase">{settings.namaSekolah}</p>
+          <p className="text-xs font-bold mt-1 opacity-75">Tahun Pelajaran {settings.tahunPelajaran} • Semester {activeSemester}</p>
         </div>
         <div className="overflow-x-auto" id="extra-table-content">
-          <table id="extra-table-content-real" className="w-full text-xs border-collapse">
-            <thead className="bg-slate-900 text-white">
-              <tr>
-                <th className="px-4 py-4 border border-slate-700">No</th>
-                <th className="px-6 py-4 border border-slate-700 text-left">Nama Pembina / Petugas</th>
-                <th className="px-4 py-4 border border-slate-700">Hari / Tanggal</th>
-                <th className="px-4 py-4 border border-slate-700">Pukul</th>
-                <th className="px-6 py-4 border border-slate-700 text-left">Ekstrakurikuler</th>
-                <th className="px-4 py-4 border border-slate-700">Tempat</th>
-                <th className="px-4 py-4 border border-slate-700 text-left">Supervisor</th>
-                <th className="px-4 py-4 border border-slate-700 text-center no-print">Aksi</th>
+          <table id="extra-table-content-real" className="w-full text-xs border-collapse border border-slate-800">
+            <thead className="bg-slate-100 text-slate-900">
+              <tr className="uppercase">
+                <th className="px-4 py-4 border border-slate-800">No</th>
+                <th className="px-6 py-4 border border-slate-800 text-left">Nama Pembina / Petugas</th>
+                <th className="px-4 py-4 border border-slate-800">Hari / Tanggal</th>
+                <th className="px-4 py-4 border border-slate-800">Pukul</th>
+                <th className="px-6 py-4 border border-slate-800 text-left">Ekstrakurikuler</th>
+                <th className="px-4 py-4 border border-slate-800">Tempat</th>
+                <th className="px-4 py-4 border border-slate-800 text-left">Supervisor</th>
+                <th className="px-4 py-4 border border-slate-800 text-center no-print">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-[11px]">
               {filteredData.length > 0 ? filteredData.map((d, i) => (
                 <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 text-center font-bold border border-slate-100">{i + 1}</td>
-                  <td className="px-6 py-4 border border-slate-100">
-                    <div className="font-bold text-slate-800 leading-tight">{d.nama}</div>
+                  <td className="px-4 py-3 text-center font-bold border border-slate-800">{i + 1}</td>
+                  <td className="px-6 py-4 border border-slate-800">
+                    <div className="font-bold text-slate-800 leading-tight uppercase">{d.nama}</div>
                     <div className="text-[10px] text-slate-500 font-mono mt-0.5 opacity-75">NIP. {d.nip}</div>
                   </td>
-                  <td className="px-4 py-4 text-center border border-slate-100">
-                    <div className="font-bold text-blue-600 leading-tight">{d.hari}</div>
+                  <td className="px-4 py-4 text-center border border-slate-800">
+                    <div className="font-bold text-blue-600 leading-tight uppercase">{d.hari}</div>
                     <div className="text-[10px] text-slate-500 mt-0.5">{d.tgl}</div>
                   </td>
-                  <td className="px-4 py-4 text-center font-bold text-slate-700 border border-slate-100">{d.pukul}</td>
-                  <td className="px-6 py-4 font-medium italic text-slate-700 border border-slate-100">{d.ekstra}</td>
-                  <td className="px-4 py-4 text-center text-slate-600 border border-slate-100">{d.tempat}</td>
-                  <td className="px-4 py-4 text-left font-bold text-slate-900 border border-slate-100">{d.supervisor}</td>
-                  <td className="px-4 py-4 text-center no-print border border-slate-100">
+                  <td className="px-4 py-4 text-center font-bold text-slate-700 border border-slate-800">{d.pukul}</td>
+                  <td className="px-6 py-4 font-medium italic text-slate-700 border border-slate-800 uppercase">{d.ekstra}</td>
+                  <td className="px-4 py-4 text-center text-slate-600 border border-slate-800">{d.tempat}</td>
+                  <td className="px-4 py-4 text-left font-bold text-slate-900 border border-slate-800 uppercase">{d.supervisor}</td>
+                  <td className="px-4 py-4 text-center no-print border border-slate-800">
                     <div className="flex justify-center gap-1">
                       <button onClick={() => handleOpenModal(d)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -241,15 +241,15 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic font-medium">Belum ada jadwal untuk semester ini. Klik "Generate Jadwal" untuk membuat jadwal default.</td>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic font-medium border border-slate-800">Belum ada jadwal untuk semester ini. Klik "Generate Jadwal" untuk membuat jadwal default.</td>
                 </tr>
               )}
             </tbody>
           </table>
-          <div className="mt-12 p-10 flex justify-between items-start text-xs font-bold tracking-tight hidden print:flex">
+          <div className="mt-12 flex justify-between items-start text-xs font-bold tracking-tight uppercase px-4">
             <div className="text-center w-64">
                <p className="mb-20 opacity-75">Mengetahui,<br/>Kepala {settings.namaSekolah}</p>
-               <p className="underline">{settings.namaKepalaSekolah}</p>
+               <p className="underline font-black">{settings.namaKepalaSekolah}</p>
                <p className="font-mono text-[10px] mt-1">NIP. {settings.nipKepalaSekolah}</p>
             </div>
             <div className="text-center w-64">

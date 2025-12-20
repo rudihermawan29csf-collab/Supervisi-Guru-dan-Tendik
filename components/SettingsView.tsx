@@ -218,7 +218,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSettings, reco
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b bg-slate-50">
-              <h2 className="text-xs font-bold text-slate-800">Identitas Sekolah</h2>
+              <h2 className="text-xs font-bold text-slate-800">Identitas Sekolah & Pengawas</h2>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -236,6 +236,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSettings, reco
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500">NIP Kepala Sekolah</label>
                 <input type="text" name="nipKepalaSekolah" value={settings.nipKepalaSekolah} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-mono text-xs" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500">Nama Pengawas</label>
+                <input type="text" name="namaPengawas" value={settings.namaPengawas} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500">NIP Pengawas</label>
+                <input type="text" name="nipPengawas" value={settings.nipPengawas} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-mono text-xs" />
               </div>
             </div>
           </div>

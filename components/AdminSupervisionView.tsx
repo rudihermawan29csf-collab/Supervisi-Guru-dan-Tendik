@@ -21,6 +21,13 @@ const formatIndonesianDate = (dateStr: string) => {
   });
 };
 
+const toTitleCase = (str: string) => {
+  if (!str) return '';
+  return str.toLowerCase().split(' ').map(word => {
+    return (word.charAt(0).toUpperCase() + word.slice(1));
+  }).join(' ');
+};
+
 const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, onUpdateRecords, settings, onSelect, setSettings }) => {
   const activeSemester = settings.semester;
   
@@ -44,9 +51,9 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
     return records
       .filter(r => r.semester === activeSemester)
       .sort((a, b) => {
-        if (!a.tanggal) return 1;
-        if (!b.tanggal) return -1;
-        return new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime();
+        if (!a.tanggalAdm) return 1;
+        if (!b.tanggalAdm) return -1;
+        return new Date(a.tanggalAdm).getTime() - new Date(b.tanggalAdm).getTime();
       });
   }, [records, activeSemester]);
 
@@ -66,6 +73,7 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
     const startDate = new Date(range.from);
     const endDate = new Date(range.to);
     let currentDate = new Date(startDate);
+    
     const otherSemesterRecords = records.filter(r => r.semester !== activeSemester);
     const updated = records.filter(r => r.semester === activeSemester).map((teacher, index) => {
       if (currentDate.getDay() === 0) currentDate.setDate(currentDate.getDate() + 1); 
@@ -74,9 +82,19 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
       const dayNameStr = dayNames[currentDate.getDay()];
       let supervisor = assignedToSup1.includes(teacher.id) ? sup1 : (assignedToSup2.includes(teacher.id) ? sup2 : sup1);
       let loc = assignedToSup1.includes(teacher.id) ? tempat1 : (assignedToSup2.includes(teacher.id) ? tempat2 : tempat1);
-      const result = { ...teacher, no: index + 1, tanggal: currentDate.toISOString().split('T')[0], hari: dayNameStr, pukul: '08.00 - 09.30', pewawancara: supervisor, tempat: loc, status: SupervisionStatus.PENDING, semester: activeSemester };
+      
+      const res = { 
+        ...teacher, 
+        no: index + 1, 
+        tanggalAdm: currentDate.toISOString().split('T')[0], 
+        hari: dayNameStr, 
+        pukul: '08.00 - 09.30', 
+        pewawancara: supervisor, 
+        tempat: loc, 
+        status: SupervisionStatus.PENDING 
+      };
       currentDate.setDate(currentDate.getDate() + 1);
-      return result;
+      return res;
     });
     onUpdateRecords([...otherSemesterRecords, ...updated]);
     setSettings({ ...settings, supervisors: [sup1, sup2] });
@@ -91,7 +109,7 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
   const exportPDF = () => {
     const element = document.getElementById('admin-supervision-export');
     const opt = { 
-      margin: 0, 
+      margin: 10, 
       filename: `Jadwal_Adm_Guru_${activeSemester}.pdf`, 
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, y: 0 },
@@ -99,18 +117,6 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
     };
     // @ts-ignore
     html2pdf().set(opt).from(element).save();
-  };
-
-  const exportWord = () => {
-    const element = document.getElementById('admin-supervision-export');
-    const content = element ? element.innerHTML : '';
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Jadwal Supervisi Administrasi</title><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: left; font-size: 10pt; } .text-center { text-align: center; } .font-bold { font-weight: bold; } .underline { text-decoration: underline; }</style></head><body>";
-    const footer = "</body></html>";
-    const blob = new Blob([header + content + footer], { type: 'application/msword' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Jadwal_Adm_Guru_${activeSemester}.doc`;
-    link.click();
   };
 
   const exportExcel = () => {
@@ -130,7 +136,7 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
     <div className="animate-fadeIn space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print space-y-6">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-lg font-bold text-slate-800">Konfigurasi Petugas Supervisi</h2>
+          <h2 className="text-lg font-bold text-slate-800">Konfigurasi Petugas Supervisi (Administrasi)</h2>
           <div className="flex gap-2">
             <button onClick={handleSaveAll} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-[10px] uppercase shadow-sm transition-all hover:bg-indigo-700">Simpan Perubahan</button>
             <button onClick={handleGenerateAdmin} className="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-[10px] uppercase shadow-sm transition-all hover:bg-blue-700">Generate Jadwal</button>
@@ -184,23 +190,15 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
         </div>
       </div>
 
-      {/* Export Buttons positioned above the table as requested */}
       <div className="flex justify-end gap-2 no-print px-2">
-        <button onClick={exportPDF} className="px-4 py-2 bg-red-600 text-white rounded-xl font-bold text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-red-700">
-          <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          PDF
+        <button onClick={exportPDF} className="px-6 py-2 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-red-700">
+           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"/></svg>
+           Download PDF
         </button>
-        <button onClick={exportWord} className="px-4 py-2 bg-blue-800 text-white rounded-xl font-bold text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-blue-900">
-          <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          Word
-        </button>
-        <button onClick={exportExcel} className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-emerald-700">
-          <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          Excel (.xls)
-        </button>
+        <button onClick={exportExcel} className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] uppercase shadow-md flex items-center transition-all hover:bg-emerald-700">Excel (.xls)</button>
       </div>
 
-      <div id="admin-supervision-export" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-6 print:p-0" style={{ margin: 0 }}>
+      <div id="admin-supervision-export" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-10 print:p-0" style={{ margin: 0 }}>
         <div className="text-center border-b-2 border-slate-900 mb-6 pb-2">
            <h1 className="text-xl font-bold uppercase tracking-tight">Jadwal Supervisi Administrasi Guru ({settings.semester})</h1>
            <h2 className="text-lg font-bold uppercase">{settings.namaSekolah}</h2>
@@ -208,10 +206,10 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
         </div>
         <table id="admin-table-export" className="w-full text-left border-collapse table-auto border border-slate-800">
           <thead>
-            <tr className="bg-slate-100">
-              <th className="px-2 py-3 text-[11px] font-bold text-center border border-slate-800">No</th>
+            <tr className="bg-slate-100 text-center uppercase">
+              <th className="px-2 py-3 text-[11px] font-bold border border-slate-800">No</th>
               <th className="px-4 py-3 text-[11px] font-bold border border-slate-800">Hari, Tanggal</th>
-              <th className="px-2 py-3 text-[11px] font-bold text-center border border-slate-800">Pukul</th>
+              <th className="px-2 py-3 text-[11px] font-bold border border-slate-800">Pukul</th>
               <th className="px-4 py-3 text-[11px] font-bold border border-slate-800">Nama Guru</th>
               <th className="px-4 py-3 text-[11px] font-bold border border-slate-800">Mata Pelajaran</th>
               <th className="px-4 py-3 text-[11px] font-bold border border-slate-800">Pewawancara</th>
@@ -222,9 +220,11 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
             {filteredRecords.length > 0 ? filteredRecords.map((r, i) => (
               <tr key={r.id}>
                 <td className="px-2 py-3 font-bold text-center border border-slate-800">{i + 1}</td>
-                <td className="px-4 py-3 border border-slate-800 font-bold">{r.hari}, {formatIndonesianDate(r.tanggal)}</td>
+                <td className="px-4 py-3 border border-slate-800 font-bold">{r.hari}, {formatIndonesianDate(r.tanggalAdm || '')}</td>
                 <td className="px-2 py-3 text-center border border-slate-800 font-bold">{r.pukul || '-'}</td>
-                <td className="px-4 py-3 border border-slate-800 font-bold">{r.namaGuru}</td>
+                <td className="px-4 py-3 border border-slate-800 font-bold text-slate-800" title={r.namaGuru}>
+                   {toTitleCase(r.namaGuru)}
+                </td>
                 <td className="px-4 py-3 border border-slate-800 italic">{r.mataPelajaran}</td>
                 <td className="px-4 py-3 border border-slate-800 font-bold">{r.pewawancara || '-'}</td>
                 <td className="px-4 py-3 border border-slate-800">{r.tempat || '-'}</td>
@@ -235,22 +235,16 @@ const AdminSupervisionView: React.FC<AdminSupervisionViewProps> = ({ records, on
           </tbody>
         </table>
 
-        {/* Signature lines added at the bottom as requested */}
         <div className="mt-12 flex justify-between items-start text-xs font-bold uppercase tracking-tight">
           <div className="text-center w-64">
-             <p className="mb-20 uppercase">Guru yang di Supervisi</p>
-             <p className="underline font-black">................................................</p>
-             <p className="font-mono text-[10px] mt-1">NIP. ................................................</p>
-          </div>
-          <div className="text-center w-64">
-             <p className="mb-20">Mengetahui,<br/>Kepala {settings.namaSekolah}</p>
+             <p className="mb-20 uppercase opacity-75">Mengetahui,<br/>Kepala {settings.namaSekolah}</p>
              <p className="underline font-black">{settings.namaKepalaSekolah}</p>
-             <p className="font-mono text-[10px] mt-1">NIP. {settings.nipKepalaSekolah}</p>
+             <p className="font-mono text-[10px] mt-1 uppercase">NIP. {settings.nipKepalaSekolah}</p>
           </div>
           <div className="text-center w-64">
-             <p className="mb-20">Mojokerto, {formatIndonesianDate(settings.tanggalCetak)}<br/>Supervisor / Petugas</p>
+             <p className="mb-20 uppercase opacity-75">Mojokerto, .....................<br/>Supervisor / Petugas</p>
              <p className="underline font-black">................................................</p>
-             <p className="font-mono text-[10px] mt-1">NIP. ................................................</p>
+             <p className="font-mono text-[10px] mt-1 uppercase">NIP. ................................................</p>
           </div>
         </div>
       </div>
