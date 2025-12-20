@@ -186,7 +186,7 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={handleGenerateExtra} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-indigo-700">Otomatis</button>
+          <button onClick={handleGenerateExtra} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-indigo-700">Generate Jadwal</button>
           <button onClick={() => handleOpenModal()} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-blue-700">+ Tambah</button>
           <button onClick={exportPDF} className="px-3 py-2 bg-red-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-red-700">PDF</button>
           <button onClick={exportExcel} className="px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-emerald-700">Excel</button>
@@ -241,7 +241,7 @@ const ScheduleExtraView: React.FC<Props> = ({ settings, setSettings, extraRecord
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic font-medium">Belum ada jadwal untuk semester ini. Klik "Otomatis" untuk membuat jadwal default.</td>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic font-medium">Belum ada jadwal untuk semester ini. Klik "Generate Jadwal" untuk membuat jadwal default.</td>
                 </tr>
               )}
             </tbody>

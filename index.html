@@ -35,6 +35,14 @@
   }
   /* Mengurangi potensi layout shift */
   body { margin: 0; padding: 0; min-height: 100vh; background-color: #f8fafc; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slideDown {
+    animation: slideDown 0.3s ease-out forwards;
+  }
 </style>
 </head>
 <body class="bg-gray-50 text-gray-900">

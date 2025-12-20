@@ -11,12 +11,20 @@ export interface DateRange {
 }
 
 export interface InstrumentResult {
-  scores: Record<number, number>;
+  scores: Record<number, number | string>;
   remarks: Record<number, string>;
   catatan?: string;
   tindakLanjut?: string;
   materi?: string;
   kelasSemester?: string;
+  // Untuk menyimpan status centang di tab Tindak Lanjut Action
+  actions?: {
+    contoh: boolean;
+    tanyaJawab: boolean;
+    diskusi: boolean;
+    konsultasi: boolean;
+    pelatihan: boolean;
+  };
 }
 
 export interface AppSettings {
@@ -55,9 +63,13 @@ export interface TeacherRecord {
   tempat?: string;
   nilai?: number; 
   nilaiAdm?: number; 
+  nilaiPenilaian?: number;
+  nilaiATP?: number;
+  nilaiModul?: number;
   catatan?: string;
   tindakLanjut?: string; 
   realisasi?: string;     
+  saran?: string;
   feedbackAI?: string;
 }
 
@@ -100,6 +112,7 @@ export type ViewType =
   | 'inst-pelaksanaan' 
   | 'inst-atp' 
   | 'inst-modul'
+  | 'inst-ekstra'
   | 'tendik-sekolah'
   | 'tendik-ketenagaan'
   | 'tendik-perlengkapan'
@@ -107,8 +120,18 @@ export type ViewType =
   | 'tendik-lab-ipa'
   | 'tendik-lab-komputer'
   | 'tendik-kesiswaan'
-  | 'tendik-ekstra'
-  | 'follow-up-results';
+  | 'results-administrasi'
+  | 'results-learning'
+  | 'results-penilaian'
+  | 'results-atp'
+  | 'results-modul'
+  | 'results-analysis'
+  | 'results-log'
+  | 'results-recap'
+  | 'results-followup-program'
+  | 'results-followup-action'
+  | 'results-tendik'
+  | 'results-extra';
 
 export interface ScheduleRow {
   ke: string;

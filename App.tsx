@@ -13,10 +13,19 @@ import PelaksanaanPembelajaran from './components/PelaksanaanPembelajaran';
 import PenelaahanATP from './components/PenelaahanATP';
 import TelaahModulAjar from './components/TelaahModulAjar';
 import InstrumentTendikView from './components/InstrumentTendikView';
+import InstrumentExtraView from './components/InstrumentExtraView';
 import SettingsView from './components/SettingsView';
 import MainDashboardView from './components/MainDashboardView';
 import AdminSupervisionView from './components/AdminSupervisionView';
-import FollowUpResultsView from './components/FollowUpResultsView';
+import AdminResultsView from './components/AdminResultsView';
+import GenericResultsView from './components/FollowUpResultsView';
+import TendikResultsView from './components/TendikResultsView';
+import ExtraResultsView from './components/ExtraResultsView';
+import LearningAnalysisView from './components/LearningAnalysisView';
+import SupervisionLogView from './components/SupervisionLogView';
+import SupervisionRecapView from './components/SupervisionRecapView';
+import ProgramTindakLanjutView from './components/ProgramTindakLanjutView';
+import FollowUpActionView from './components/FollowUpActionView';
 
 const INITIAL_EXTRA: ExtraRecord[] = [
   { id: 1, nama: 'Fahmi Wahyuni, S.Pd', nip: '-', hari: 'Senin', tgl: '23 Oktober 2025', pukul: '10.00 - 11.00', ekstra: 'OSN Bahasa Indonesia', tempat: 'Ruang Kepala Sekolah', supervisor: 'Didik Sulistyo, M.M.Pd.', semester: 'Ganjil' },
@@ -48,7 +57,10 @@ const App: React.FC = () => {
     jadwal: true,
     instrumenGuru: true,
     instrumenTendik: true,
-    tindakLanjut: true
+    instrumenExtra: true,
+    tindakLanjut: true,
+    tindakLanjutTendik: true,
+    tindakLanjutExtra: true
   });
 
   const [selectedRecord, setSelectedRecord] = useState<TeacherRecord | null>(null);
@@ -73,58 +85,44 @@ const App: React.FC = () => {
       rangeExtraGenap: { from: '2026-03-17', to: '2026-03-30' }
     };
     try {
-      const saved = localStorage.getItem('supervisi_settings_v9');
+      const saved = localStorage.getItem('supervisi_settings_v10');
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     } catch { return defaults; }
   });
 
   const [records, setRecords] = useState<TeacherRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('supervisi_records_v9');
+      const saved = localStorage.getItem('supervisi_records_v10');
       return saved ? JSON.parse(saved) : INITIAL_TEACHERS;
     } catch { return INITIAL_TEACHERS; }
   });
 
   const [extraRecords, setExtraRecords] = useState<ExtraRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('supervisi_extra_records_v9');
+      const saved = localStorage.getItem('supervisi_extra_records_v10');
       return saved ? JSON.parse(saved) : INITIAL_EXTRA;
     } catch { return INITIAL_EXTRA; }
   });
 
   const [adminRecords, setAdminRecords] = useState<AdminRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('supervisi_admin_records_v9');
+      const saved = localStorage.getItem('supervisi_admin_records_v10');
       return saved ? JSON.parse(saved) : INITIAL_ADMIN;
     } catch { return INITIAL_ADMIN; }
   });
 
   const [instrumentResults, setInstrumentResults] = useState<Record<string, InstrumentResult>>(() => {
     try {
-      const saved = localStorage.getItem('supervisi_instrument_results_v9');
+      const saved = localStorage.getItem('supervisi_instrument_results_v10');
       return saved ? JSON.parse(saved) : {};
     } catch { return {}; }
   });
 
-  useEffect(() => {
-    localStorage.setItem('supervisi_settings_v9', JSON.stringify(settings));
-  }, [settings]);
-
-  useEffect(() => {
-    localStorage.setItem('supervisi_records_v9', JSON.stringify(records));
-  }, [records]);
-
-  useEffect(() => {
-    localStorage.setItem('supervisi_extra_records_v9', JSON.stringify(extraRecords));
-  }, [extraRecords]);
-
-  useEffect(() => {
-    localStorage.setItem('supervisi_admin_records_v9', JSON.stringify(adminRecords));
-  }, [adminRecords]);
-
-  useEffect(() => {
-    localStorage.setItem('supervisi_instrument_results_v9', JSON.stringify(instrumentResults));
-  }, [instrumentResults]);
+  useEffect(() => { localStorage.setItem('supervisi_settings_v10', JSON.stringify(settings)); }, [settings]);
+  useEffect(() => { localStorage.setItem('supervisi_records_v10', JSON.stringify(records)); }, [records]);
+  useEffect(() => { localStorage.setItem('supervisi_extra_records_v10', JSON.stringify(extraRecords)); }, [extraRecords]);
+  useEffect(() => { localStorage.setItem('supervisi_admin_records_v10', JSON.stringify(adminRecords)); }, [adminRecords]);
+  useEffect(() => { localStorage.setItem('supervisi_instrument_results_v10', JSON.stringify(instrumentResults)); }, [instrumentResults]);
 
   const handleUpdateRecords = useCallback((newRecords: TeacherRecord[]) => {
     setRecords(newRecords);
@@ -132,57 +130,72 @@ const App: React.FC = () => {
 
   const handleSaveInstrument = (teacherId: number, type: string, semester: string, data: InstrumentResult) => {
     const key = `${teacherId}-${type}-${semester}`;
-    setInstrumentResults(prev => ({
-      ...prev,
-      [key]: data
-    }));
+    setInstrumentResults(prev => ({ ...prev, [key]: data }));
     
-    if (type === 'administrasi' || type === 'pembelajaran') {
-       const scoreArray = Object.values(data.scores);
-       const total = scoreArray.reduce((a, b) => a + b, 0);
-       const max = type === 'administrasi' ? 26 : 76;
-       const finalScore = Math.round((total / max) * 100);
-       
-       setRecords(prev => prev.map(r => {
-         if (r.id === teacherId) {
-            const updated = type === 'administrasi' ? { ...r, nilaiAdm: finalScore, status: SupervisionStatus.COMPLETED } : { ...r, nilai: finalScore, status: SupervisionStatus.COMPLETED };
-            return { ...updated, tindakLanjut: data.tindakLanjut, catatan: data.catatan };
-         }
-         return r;
-       }));
-    }
+    const maxScores: Record<string, number> = {
+      'administrasi': 26,
+      'pembelajaran': 76,
+      'penilaian': 36,
+      'atp': 24,
+      'modul': 48,
+      'sekolah': 100,
+      'ketenagaan': 100,
+      'perlengkapan': 100,
+      'perpustakaan': 100,
+      'lab-ipa': 100,
+      'lab-komputer': 100,
+      'kesiswaan': 100
+    };
+
+    const scoreArray = Object.values(data.scores).filter(v => typeof v === 'number') as number[];
+    const total = scoreArray.reduce((a, b) => a + b, 0);
+    const max = maxScores[type] || 100;
+    const finalScore = Math.round((total / max) * 100);
+    
+    setRecords(prev => prev.map(r => {
+      if (r.id === teacherId) {
+        let updated = { ...r, status: SupervisionStatus.COMPLETED, catatan: data.catatan, tindakLanjut: data.tindakLanjut };
+        if (type === 'administrasi') updated.nilaiAdm = finalScore;
+        else if (type === 'pembelajaran') updated.nilai = finalScore;
+        else if (type === 'penilaian') updated.nilaiPenilaian = finalScore;
+        else if (type === 'atp') updated.nilaiATP = finalScore;
+        else if (type === 'modul') updated.nilaiModul = finalScore;
+        return updated;
+      }
+      return r;
+    }));
     alert('Data instrumen berhasil disimpan!');
   };
 
   const handleRefreshDashboard = useCallback(() => {
     const updated = records.map(r => {
-      const admKey = `${r.id}-administrasi-${settings.semester}`;
-      const pembKey = `${r.id}-pembelajaran-${settings.semester}`;
-      let nilaiAdm = r.nilaiAdm;
-      let nilai = r.nilai;
-      let catatan = r.catatan;
-      let tindakLanjut = r.tindakLanjut;
+      const semester = settings.semester;
+      const getVal = (type: string, max: number) => {
+        const key = `${r.id}-${type}-${semester}`;
+        if (instrumentResults[key]) {
+          const scores = Object.values(instrumentResults[key].scores).filter(v => typeof v === 'number') as number[];
+          return Math.round((scores.reduce((a, b) => a + b, 0) / max) * 100);
+        }
+        return null;
+      };
 
-      if (instrumentResults[admKey]) {
-        // Fix: Explicitly casting Object.values result to number[] to resolve "unknown" type errors in reduce and arithmetic operations.
-        const scores = Object.values(instrumentResults[admKey].scores) as number[];
-        const total = scores.reduce((a, b) => a + b, 0);
-        nilaiAdm = Math.round((total / 26) * 100);
-        catatan = instrumentResults[admKey].catatan || catatan;
-        tindakLanjut = instrumentResults[admKey].tindakLanjut || tindakLanjut;
-      }
+      const nAdm = getVal('administrasi', 26);
+      const nPemb = getVal('pembelajaran', 76);
+      const nPen = getVal('penilaian', 36);
+      const nAtp = getVal('atp', 24);
+      const nMod = getVal('modul', 48);
 
-      if (instrumentResults[pembKey]) {
-        // Fix: Explicitly casting Object.values result to number[] to resolve "unknown" type errors in reduce and arithmetic operations.
-        const scores = Object.values(instrumentResults[pembKey].scores) as number[];
-        const total = scores.reduce((a, b) => a + b, 0);
-        nilai = Math.round((total / 76) * 100);
-      }
-
-      return { ...r, nilaiAdm, nilai, catatan, tindakLanjut };
+      return {
+        ...r,
+        nilaiAdm: nAdm !== null ? nAdm : r.nilaiAdm,
+        nilai: nPemb !== null ? nPemb : r.nilai,
+        nilaiPenilaian: nPen !== null ? nPen : r.nilaiPenilaian,
+        nilaiATP: nAtp !== null ? nAtp : r.nilaiATP,
+        nilaiModul: nMod !== null ? nMod : r.nilaiModul
+      };
     });
     setRecords(updated);
-    alert('Sinkronisasi data berhasil! Dashboard telah diperbarui dengan nilai terbaru.');
+    alert('Sinkronisasi data berhasil!');
   }, [records, instrumentResults, settings.semester]);
 
   const handleSaveSingleRecord = (updatedRecord: TeacherRecord) => {
@@ -190,80 +203,123 @@ const App: React.FC = () => {
     setSelectedRecord(null);
   };
 
-  const NavItem = ({ view, label, icon }: { view: ViewType, label: string, icon?: React.ReactNode }) => (
+  const NavItem = ({ view, label, icon, activeColor = 'bg-blue-600' }: { view: ViewType, label: string, icon?: React.ReactNode, activeColor?: string }) => (
     <button 
       onClick={() => setActiveView(view)}
-      className={`w-full flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeView === view ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+      className={`w-full flex items-center justify-start text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeView === view ? `${activeColor} text-white shadow-lg` : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
     >
-      {icon && <span className="mr-3">{icon}</span>}
+      {icon && <span className="mr-3 shrink-0">{icon}</span>}
       <span className="truncate">{label}</span>
     </button>
   );
 
-  const SectionHeader = ({ id, label }: { id: string, label: string }) => (
+  const SectionHeader = ({ id, label, color = 'text-slate-500' }: { id: string, label: string, color?: string }) => (
     <button 
       onClick={() => setOpenSections(p => ({...p, [id]: !p[id]}))}
-      className="w-full flex items-center justify-between px-4 py-2 mt-4 text-[10px] font-bold text-slate-500 hover:text-slate-300"
+      className={`w-full flex items-center justify-between text-left px-4 py-2 mt-4 text-[10px] font-black uppercase tracking-widest ${color} hover:text-white transition-colors`}
     >
-      <span>{label}</span>
-      <svg className={`w-3 h-3 transition-transform ${openSections[id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2"/></svg>
+      <span className="truncate mr-2">{label}</span>
+      <svg className={`w-3 h-3 shrink-0 transition-transform duration-300 ${openSections[id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
     </button>
   );
 
   return (
     <div className="min-h-screen bg-slate-100 flex overflow-hidden">
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
-        <div className="p-6 border-b border-slate-800 text-center">
-          <h1 className="text-base font-bold leading-tight">{settings.namaSekolah}</h1>
-          <p className="text-[10px] text-blue-400 font-bold mt-1 tracking-wide italic">Sistem Supervisi Akademik</p>
+        <div className="p-6 border-b border-slate-800 text-center bg-slate-950/50">
+          <h1 className="text-base font-black leading-tight text-white tracking-tight">{settings.namaSekolah}</h1>
+          <p className="text-[10px] text-blue-400 font-black mt-1 tracking-widest italic uppercase">Supervisi Akademik</p>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide">
-          <NavItem view="dashboard" label="Dashboard Utama" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1-0 01-1-1v-6zM10 5a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1-0 01-1-1V5z" strokeWidth="2"/></svg>} />
-          <NavItem view="settings" label="Pengaturan Sistem" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572z" strokeWidth="2"/></svg>} />
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2 scrollbar-hide">
+          <NavItem view="dashboard" label="Dashboard Utama" activeColor="bg-indigo-600" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 v2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1-0 01-1-1v-6zM10 5a1 1 0 011-1h2a1 v2a1 1 0 01-1 1h-2a1 1-0 01-1-1V5z" strokeWidth="2"/></svg>} />
+          <NavItem view="settings" label="Pengaturan Sistem" activeColor="bg-zinc-600" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572z" strokeWidth="2"/></svg>} />
 
-          <SectionHeader id="jadwal" label="Jadwal Supervisi" />
-          {openSections.jadwal && (
-            <div className="space-y-0.5">
-              <NavItem view="supervision-admin-guru" label="Administrasi Guru" />
-              <NavItem view="supervision" label="Jadwal Pembelajaran Guru" />
-              <NavItem view="schedule-admin" label="Supervisi Tendik" />
-              <NavItem view="schedule-extra" label="Supervisi Ekstra" />
-              <NavItem view="schedule" label="Jadwal Pelajaran Sekolah" />
-            </div>
-          )}
+          <div className="bg-blue-900/20 rounded-2xl border border-blue-500/10 overflow-hidden pb-1">
+            <SectionHeader id="jadwal" label="Jadwal Supervisi" color="text-blue-400" />
+            {openSections.jadwal && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="supervision-admin-guru" label="Administrasi Guru" activeColor="bg-blue-600" />
+                <NavItem view="supervision" label="Jadwal Pembelajaran Guru" activeColor="bg-blue-600" />
+                <NavItem view="schedule-admin" label="Supervisi Tendik" activeColor="bg-blue-600" />
+                <NavItem view="schedule-extra" label="Supervisi Ekstra" activeColor="bg-blue-600" />
+                <NavItem view="schedule" label="Jadwal Pelajaran Sekolah" activeColor="bg-blue-600" />
+              </div>
+            )}
+          </div>
 
-          <SectionHeader id="instrumenGuru" label="Instrumen Guru" />
-          {openSections.instrumenGuru && (
-            <div className="space-y-0.5">
-              <NavItem view="inst-administrasi" label="Administrasi Pembelajaran" />
-              <NavItem view="inst-pelaksanaan" label="Pelaksanaan Pembelajaran" />
-              <NavItem view="inst-penilaian" label="Penilaian Pembelajaran" />
-              <NavItem view="inst-atp" label="Penelaahan ATP" />
-              <NavItem view="inst-modul" label="Telaah Modul Ajar" />
-            </div>
-          )}
+          <div className="bg-emerald-900/20 rounded-2xl border border-emerald-500/10 overflow-hidden pb-1">
+            <SectionHeader id="instrumenGuru" label="Instrumen Guru" color="text-emerald-400" />
+            {openSections.instrumenGuru && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="inst-administrasi" label="Administrasi Pembelajaran" activeColor="bg-emerald-600" />
+                <NavItem view="inst-pelaksanaan" label="Pelaksanaan Pembelajaran" activeColor="bg-emerald-600" />
+                <NavItem view="inst-penilaian" label="Penilaian Pembelajaran" activeColor="bg-emerald-600" />
+                <NavItem view="inst-atp" label="Penelaahan ATP" activeColor="bg-emerald-600" />
+                <NavItem view="inst-modul" label="Telaah Modul Ajar" activeColor="bg-emerald-600" />
+              </div>
+            )}
+          </div>
 
-          <SectionHeader id="instrumenTendik" label="Instrumen Tendik" />
-          {openSections.instrumenTendik && (
-            <div className="space-y-0.5">
-              <NavItem view="tendik-sekolah" label="Administrasi Sekolah" />
-              <NavItem view="tendik-ketenagaan" label="Administrasi Ketenagaan" />
-              <NavItem view="tendik-perlengkapan" label="Administrasi Perlengkapan" />
-              <NavItem view="tendik-perpustakaan" label="Administrasi Perpustakaan" />
-              <NavItem view="tendik-lab-ipa" label="Laboratorium IPA" />
-              <NavItem view="tendik-lab-komputer" label="Laboratorium Komputer" />
-              <NavItem view="tendik-kesiswaan" label="Administrasi Kesiswaan" />
-              <NavItem view="tendik-ekstra" label="Kegiatan Ekstrakurikuler" />
-            </div>
-          )}
+          <div className="bg-orange-900/20 rounded-2xl border border-orange-500/10 overflow-hidden pb-1">
+            <SectionHeader id="instrumenTendik" label="Instrumen Tendik" color="text-orange-400" />
+            {openSections.instrumenTendik && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="tendik-sekolah" label="Administrasi Sekolah" activeColor="bg-orange-600" />
+                <NavItem view="tendik-ketenagaan" label="Administrasi Ketenagaan" activeColor="bg-orange-600" />
+                <NavItem view="tendik-perlengkapan" label="Administrasi Perlengkapan" activeColor="bg-orange-600" />
+                <NavItem view="tendik-perpustakaan" label="Administrasi Perpustakaan" activeColor="bg-orange-600" />
+                <NavItem view="tendik-lab-ipa" label="Laboratorium IPA" activeColor="bg-orange-600" />
+                <NavItem view="tendik-lab-komputer" label="Laboratorium Komputer" activeColor="bg-orange-600" />
+                <NavItem view="tendik-kesiswaan" label="Administrasi Kesiswaan" activeColor="bg-orange-600" />
+              </div>
+            )}
+          </div>
 
-          <SectionHeader id="tindakLanjut" label="Tindak Lanjut" />
-          {openSections.tindakLanjut && (
-            <div className="space-y-0.5">
-              <NavItem view="follow-up-results" label="Hasil & Tindak Lanjut" />
-            </div>
-          )}
+          <div className="bg-purple-900/20 rounded-2xl border border-purple-500/10 overflow-hidden pb-1">
+            <SectionHeader id="instrumenExtra" label="Instrumen Ekstrakurikuler" color="text-purple-400" />
+            {openSections.instrumenExtra && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="inst-ekstra" label="Kegiatan Ekstrakurikuler" activeColor="bg-purple-600" />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-rose-900/20 rounded-2xl border border-rose-500/10 overflow-hidden pb-1">
+            <SectionHeader id="tindakLanjut" label="Hasil Supervisi Guru" color="text-rose-400" />
+            {openSections.tindakLanjut && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="results-recap" label="Rekap Supervisi Akademik" activeColor="bg-rose-600" />
+                <NavItem view="results-followup-program" label="Program Tindak Lanjut" activeColor="bg-rose-600" />
+                <NavItem view="results-followup-action" label="Tindak Lanjut Action" activeColor="bg-rose-600" />
+                <NavItem view="results-administrasi" label="Hasil Supervisi Administrasi" activeColor="bg-rose-600" />
+                <NavItem view="results-learning" label="Hasil Supervisi Pembelajaran" activeColor="bg-rose-600" />
+                <NavItem view="results-penilaian" label="Hasil Penilaian Pembelajaran" activeColor="bg-rose-600" />
+                <NavItem view="results-atp" label="Hasil Penelaahan ATP" activeColor="bg-rose-600" />
+                <NavItem view="results-modul" label="Hasil Telaah Modul Ajar" activeColor="bg-rose-600" />
+                <NavItem view="results-analysis" label="Analisis Hasil Supervisi" activeColor="bg-rose-600" />
+                <NavItem view="results-log" label="Catatan Pelaksanaan" activeColor="bg-rose-600" />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-cyan-900/20 rounded-2xl border border-cyan-500/10 overflow-hidden pb-1">
+            <SectionHeader id="tindakLanjutTendik" label="Hasil Supervisi Tendik" color="text-cyan-400" />
+            {openSections.tindakLanjutTendik && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="results-tendik" label="Hasil Supervisi Tendik Terpadu" activeColor="bg-cyan-600" />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-purple-900/20 rounded-2xl border border-purple-500/10 overflow-hidden pb-1">
+            <SectionHeader id="tindakLanjutExtra" label="Hasil Supervisi Ekstra" color="text-purple-400" />
+            {openSections.tindakLanjutExtra && (
+              <div className="px-1 space-y-0.5 animate-slideDown">
+                <NavItem view="results-extra" label="Hasil Supervisi Ekstrakurikuler" activeColor="bg-purple-600" />
+              </div>
+            )}
+          </div>
         </nav>
       </aside>
 
@@ -273,14 +329,14 @@ const App: React.FC = () => {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 text-slate-500 lg:hidden">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" strokeWidth="2"/></svg>
             </button>
-            <h2 className="ml-4 text-xs font-bold text-slate-800 tracking-tight truncate">
+            <h2 className="ml-4 text-xs font-black text-slate-800 tracking-tight truncate uppercase">
               {activeView.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             </h2>
           </div>
           <div className="flex items-center space-x-3">
              <div className="text-right">
-                <p className="text-[11px] font-bold text-slate-900 leading-none">{settings.namaKepalaSekolah}</p>
-                <p className="text-[10px] text-blue-600 font-medium mt-1">TP {settings.tahunPelajaran} • Semester {settings.semester}</p>
+                <p className="text-[11px] font-black text-slate-900 leading-none uppercase">{settings.namaKepalaSekolah}</p>
+                <p className="text-[10px] text-blue-600 font-bold mt-1 uppercase">TP {settings.tahunPelajaran} • SMST {settings.semester}</p>
              </div>
           </div>
         </header>
@@ -299,8 +355,27 @@ const App: React.FC = () => {
             {activeView === 'inst-pelaksanaan' && <PelaksanaanPembelajaran settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
             {activeView === 'inst-atp' && <PenelaahanATP settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
             {activeView === 'inst-modul' && <TelaahModulAjar settings={settings} records={records} instrumentResults={instrumentResults} onSave={handleSaveInstrument} />}
-            {activeView === 'follow-up-results' && <FollowUpResultsView records={records} settings={settings} onUpdate={handleUpdateRecords} />}
-            {activeView.startsWith('tendik-') && <InstrumentTendikView type={activeView.replace('tendik-', '') as any} settings={settings} />}
+            {activeView === 'inst-ekstra' && <InstrumentExtraView settings={settings} extraRecords={extraRecords} instrumentResults={instrumentResults} onSave={(key, data) => setInstrumentResults(prev => ({...prev, [key]: data}))} />}
+            
+            {activeView === 'results-recap' && <SupervisionRecapView settings={settings} records={records} setSettings={setSettings} />}
+            {activeView === 'results-followup-program' && <ProgramTindakLanjutView settings={settings} records={records} setSettings={setSettings} />}
+            {activeView === 'results-followup-action' && <FollowUpActionView settings={settings} records={records} setSettings={setSettings} instrumentResults={instrumentResults} onSaveAction={(teacherId, actions) => {
+              const key = `${teacherId}-followup-actions-${settings.semester}`;
+              setInstrumentResults(prev => ({ ...prev, [key]: { scores: {}, remarks: {}, actions } }));
+            }} />}
+
+            {activeView === 'results-administrasi' && <AdminResultsView records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
+            {activeView === 'results-learning' && <GenericResultsView title="Hasil Supervisi Pembelajaran" type="pembelajaran" scoreKey="nilai" maxScore={76} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
+            {activeView === 'results-penilaian' && <GenericResultsView title="Hasil Penilaian Pembelajaran" type="penilaian" scoreKey="nilaiPenilaian" maxScore={36} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
+            {activeView === 'results-atp' && <GenericResultsView title="Hasil Penelaahan ATP" type="atp" scoreKey="nilaiATP" maxScore={24} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
+            {activeView === 'results-modul' && <GenericResultsView title="Hasil Telaah Modul Ajar" type="modul" scoreKey="nilaiModul" maxScore={48} records={records} settings={settings} onUpdate={handleUpdateRecords} onRefresh={handleRefreshDashboard} setSettings={setSettings} />}
+            {activeView === 'results-analysis' && <LearningAnalysisView settings={settings} records={records} instrumentResults={instrumentResults} setSettings={setSettings} />}
+            {activeView === 'results-log' && <SupervisionLogView settings={settings} records={records} instrumentResults={instrumentResults} setSettings={setSettings} />}
+            
+            {activeView === 'results-tendik' && <TendikResultsView adminRecords={adminRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
+            {activeView === 'results-extra' && <ExtraResultsView extraRecords={extraRecords} settings={settings} instrumentResults={instrumentResults} setSettings={setSettings} />}
+
+            {activeView.startsWith('tendik-') && <InstrumentTendikView type={activeView.replace('tendik-', '') as any} settings={settings} adminRecords={adminRecords} instrumentResults={instrumentResults} onSave={(key, data) => setInstrumentResults(prev => ({...prev, [key]: data}))} setSettings={setSettings} />}
           </div>
         </div>
       </main>

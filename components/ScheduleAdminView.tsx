@@ -11,16 +11,23 @@ interface Props {
   teacherRecords: TeacherRecord[];
 }
 
+const DEFAULT_ADMIN_TEMPLATES = [
+  { nama: "Imam Safi'i", nip: '-', kegiatan: 'Administrasi Sekolah', pukul: '07.30 - 08.30', tempat: 'Kantor Tata Usaha' },
+  { nama: "Imam Safi'i", nip: '-', kegiatan: 'Administrasi Kesiswaan', pukul: '08.30 - 09.30', tempat: 'Ruang OSIS' },
+  { nama: 'Rayi Putri Lestari, S.Pd.', nip: '-', kegiatan: 'Administrasi Ketenagaan', pukul: '07.30 - 08.30', tempat: 'Kantor Tata Usaha' },
+  { nama: 'Mansyur Rohmad', nip: '-', kegiatan: 'Administrasi Perlengkapan / sarpras', pukul: '08.30 - 09.30', tempat: 'Ruang Guru' },
+  { nama: 'Mansyur Rohmad', nip: '-', kegiatan: 'Laboratorium Komputer', pukul: '10.00 - 11.00', tempat: 'Ruang Lab. Komputer' },
+  { nama: 'Mochamad Ansori', nip: '-', kegiatan: 'Administrasi Perpustakaan', pukul: '07.30 - 08.30', tempat: 'Ruang Perpustakaan' },
+  { nama: 'Moch. Husain Rifai Hamzah, s.pd.', nip: '19920316 202012 1 011', kegiatan: 'Laboratorium IPA', pukul: '08.30 - 09.30', tempat: 'Ruang Lab. IPA' },
+];
+
 const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecords, setAdminRecords, teacherRecords }) => {
   const activeSemester = settings.semester;
   const filteredData = useMemo(() => adminRecords.filter(r => r.semester === activeSemester), [adminRecords, activeSemester]);
 
-  // Selection candidate names - prioritize Staff TU (PTT) but merge with existing default records (like PJOK teacher for Lab IPA)
+  // Selection candidate names
   const candidateNames = useMemo(() => {
-    // Start with PTT data
     const pttNames = DATA_PTT.map(r => ({ name: r.nama, nip: r.nip || '-' }));
-    
-    // Add teachers who are specifically referenced in the default admin schedule (like Lab managers)
     const teachersHoldingExtra = teacherRecords
       .filter(t => adminRecords.some(ar => ar.nama === t.namaGuru))
       .map(t => ({ name: t.namaGuru, nip: t.nip || '-' }));
@@ -46,7 +53,7 @@ const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecord
     pukul: '',
     kegiatan: '',
     tempat: '',
-    supervisor: 'Didik Sulistyo, M.M.Pd.'
+    supervisor: settings.namaKepalaSekolah
   });
 
   const handleOpenModal = (record?: AdminRecord) => {
@@ -72,7 +79,7 @@ const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecord
         pukul: '',
         kegiatan: '',
         tempat: '',
-        supervisor: 'Didik Sulistyo, M.M.Pd.'
+        supervisor: settings.namaKepalaSekolah
       });
     }
     setIsModalOpen(true);
@@ -85,6 +92,44 @@ const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecord
       nama: name,
       nip: selected ? selected.nip : '-'
     });
+  };
+
+  const handleGenerateAdmin = () => {
+    const range = activeSemester === 'Ganjil' ? settings.rangeTendikGanjil : settings.rangeTendikGenap;
+    if (!range?.from) { alert('Tentukan rentang tanggal di Pengaturan!'); return; }
+    
+    const startDate = new Date(range.from);
+    const endDate = new Date(range.to);
+    let currentDate = new Date(startDate);
+    
+    const otherSemesterRecords = adminRecords.filter(r => r.semester !== activeSemester);
+    const generated: AdminRecord[] = DEFAULT_ADMIN_TEMPLATES.map((tpl, index) => {
+      if (currentDate.getDay() === 0) currentDate.setDate(currentDate.getDate() + 1);
+      if (currentDate > endDate) currentDate = new Date(startDate);
+      
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const dayNameStr = dayNames[currentDate.getDay()];
+      const tglStr = currentDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      
+      const res = {
+        id: index + 1 + (otherSemesterRecords.length > 0 ? Math.max(...otherSemesterRecords.map(o => o.id)) : 0),
+        nama: tpl.nama,
+        nip: tpl.nip,
+        hari: dayNameStr,
+        tgl: tglStr,
+        pukul: tpl.pukul,
+        kegiatan: tpl.kegiatan,
+        tempat: tpl.tempat,
+        supervisor: settings.namaKepalaSekolah,
+        semester: activeSemester
+      };
+      
+      if (index % 2 === 1) currentDate.setDate(currentDate.getDate() + 1); // Group 2 tasks per day
+      return res;
+    });
+
+    setAdminRecords([...otherSemesterRecords, ...generated]);
+    alert(`Berhasil generate ${generated.length} jadwal supervisi tendik!`);
   };
 
   const handleSaveRecord = () => {
@@ -153,6 +198,7 @@ const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecord
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button onClick={handleGenerateAdmin} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-blue-700">Generate Jadwal</button>
           <button onClick={() => handleOpenModal()} className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-emerald-700">+ Tambah Jadwal</button>
           <button onClick={handleFinalSave} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-indigo-700">Simpan Data</button>
           <button onClick={exportPDF} className="px-3 py-2 bg-red-600 text-white rounded-xl font-bold text-[10px] shadow-md transition-all hover:bg-red-700">PDF</button>
@@ -208,7 +254,7 @@ const ScheduleAdminView: React.FC<Props> = ({ settings, setSettings, adminRecord
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic">Belum ada jadwal tendik.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400 italic">Belum ada jadwal tendik. Klik "Generate Jadwal" untuk mengisi otomatis.</td></tr>
               )}
             </tbody>
           </table>
