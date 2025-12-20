@@ -46,8 +46,8 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
 
   const stats = useMemo(() => {
     const totalScore = (Object.values(scores) as number[]).reduce((sum, s) => sum + s, 0);
-    const maxScore = ALL_IDS.length * 2; 
-    const percentage = (totalScore / maxScore) * 100;
+    const maxScore = ALL_IDS.length * 2; // Total items * max score 2
+    const percentage = Math.round((totalScore / maxScore) * 100);
     
     let kriteria = 'Kurang';
     if (percentage >= 91) kriteria = 'Sangat Baik';
@@ -55,7 +55,7 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
     else if (percentage >= 71) kriteria = 'Cukup';
 
     const auto = getAutoText(percentage);
-    return { totalScore, maxScore, percentage: percentage.toFixed(2), kriteria, auto };
+    return { totalScore, maxScore, percentage, kriteria, auto };
   }, [scores]);
 
   useEffect(() => {
@@ -63,6 +63,7 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
       const key = `${selectedTeacherId}-pembelajaran-${settings.semester}`;
       const saved = instrumentResults[key];
       if (saved) setScores(saved.scores as any);
+      else setScores(ALL_IDS.reduce((acc, id) => ({ ...acc, [id]: 0 }), {}));
     }
   }, [selectedTeacherId, settings.semester, instrumentResults]);
 
@@ -84,11 +85,11 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
   return (
     <div className="space-y-4 animate-fadeIn">
       <div className="flex flex-wrap justify-between items-center gap-4 no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <select value={selectedTeacherId} onChange={(e) => setSelectedTeacherId(Number(e.target.value))} className="px-4 py-2 border rounded-xl font-bold text-blue-600">
+        <select value={selectedTeacherId} onChange={(e) => setSelectedTeacherId(Number(e.target.value))} className="px-4 py-2 border rounded-xl font-bold text-blue-600 outline-none">
           <option value="">-- Pilih Guru --</option>
           {records.map(t => <option key={t.id} value={t.id}>{t.namaGuru}</option>)}
         </select>
-        <button onClick={handleSave} disabled={!selectedTeacher} className="px-5 py-1.5 bg-blue-600 text-white rounded-lg font-black text-[9px] uppercase shadow">Simpan</button>
+        <button onClick={handleSave} disabled={!selectedTeacher} className="px-5 py-2 bg-blue-600 text-white rounded-lg font-black text-[10px] uppercase shadow-lg disabled:opacity-50">Simpan Hasil</button>
       </div>
 
       <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
@@ -105,25 +106,25 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
           </div>
         </div>
 
-        <table className="w-full border-collapse text-[10px] mb-4">
+        <table className="w-full border-collapse text-[10px] mb-6">
           <thead>
             <tr className="bg-slate-900 text-white uppercase">
               <th rowSpan={2} className="px-2 py-3 border border-slate-700 w-8">No</th>
               <th rowSpan={2} className="px-4 py-3 border border-slate-700 text-left">Aspek Diamati</th>
               <th colSpan={3} className="px-2 py-2 border border-slate-700">Skor</th>
             </tr>
-            <tr className="bg-slate-800 text-white text-[8px]">
-              <th>2</th><th>1</th><th>0</th>
+            <tr className="bg-slate-800 text-white text-[8px] text-center">
+              <th className="border border-slate-700">2</th><th className="border border-slate-700">1</th><th className="border border-slate-700">0</th>
             </tr>
           </thead>
           <tbody>
             {SECTIONS.map((sec, sidx) => (
               <React.Fragment key={sidx}>
-                <tr className="bg-slate-100 font-bold"><td colSpan={5} className="p-1 pl-4">{sec.group}</td></tr>
+                <tr className="bg-slate-100 font-black text-[9px] uppercase tracking-wide"><td colSpan={5} className="p-2 pl-4 border border-slate-200">{sec.group}</td></tr>
                 {sec.items.map((item, iidx) => (
-                  <tr key={item.id}>
-                    <td className="px-2 py-2 border border-slate-200 text-center">{iidx + 1}</td>
-                    <td className="px-4 py-2 border border-slate-200">{item.label}</td>
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-2 py-2 border border-slate-200 text-center font-bold text-slate-400">{iidx + 1}</td>
+                    <td className="px-4 py-2 border border-slate-200 font-medium">{item.label}</td>
                     {[2, 1, 0].map(v => (
                       <td key={v} className="px-1 py-2 border border-slate-200 text-center">
                         <input type="radio" checked={scores[item.id] === v} onChange={() => setScores(p => ({...p, [item.id]: v}))} />
@@ -136,30 +137,45 @@ const PelaksanaanPembelajaran: React.FC<Props> = ({ settings, records, instrumen
           </tbody>
         </table>
 
-        <div className="bg-slate-50 p-4 rounded-xl border mb-6 text-[10px] font-bold">
-           <p className="mb-2">Keterangan : Nilai Akhir = Skor Perolehan x 100 % / Skor Maksimal ({stats.maxScore})</p>
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-slate-600">
-              <span>91% - 100% = Sangat Baik</span>
-              <span>81% - 90% = Baik</span>
-              <span>71% - 80% = Cukup</span>
-              <span>Dibawah 71% = Kurang</span>
-           </div>
+        {/* Tabel Ringkasan Nilai */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 bg-white rounded-lg border">
+               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Skor Perolehan</p>
+               <p className="text-2xl font-black text-slate-800">{stats.totalScore}</p>
+            </div>
+            <div className="p-3 bg-white rounded-lg border">
+               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Skor Maksimal</p>
+               <p className="text-2xl font-black text-slate-800">{stats.maxScore}</p>
+            </div>
+            <div className="p-3 bg-indigo-600 rounded-lg shadow-lg">
+               <p className="text-[10px] font-black text-indigo-100 uppercase mb-1">Nilai Akhir (%)</p>
+               <p className="text-2xl font-black text-white">{stats.percentage}%</p>
+            </div>
+          </div>
+          <div className="mt-4 flex justify-between items-center px-2">
+             <p className="text-[10px] font-bold text-slate-500 italic">* Nilai Akhir = (Skor Perolehan / {stats.maxScore}) x 100</p>
+             <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-slate-400">Hasil:</span>
+                <span className={`px-4 py-1 rounded-full text-[10px] font-black text-white uppercase tracking-wider ${stats.percentage >= 91 ? 'bg-emerald-600' : stats.percentage >= 81 ? 'bg-blue-600' : stats.percentage >= 71 ? 'bg-amber-500' : 'bg-red-600'}`}>{stats.kriteria}</span>
+             </div>
+          </div>
         </div>
 
-        <div className="space-y-4 mb-12 text-[11px] font-bold uppercase">
-           <div className="border-b-2 border-dotted border-slate-400 pb-1">Catatan : <span className="font-normal italic lowercase">{stats.auto.c}</span></div>
-           <div className="border-b-2 border-dotted border-slate-400 pb-1">Tindak Lanjut : <span className="font-normal italic lowercase">{stats.auto.tl}</span></div>
+        <div className="space-y-4 mb-12 text-[11px] font-bold uppercase tracking-tight">
+           <div className="border-b-2 border-dotted border-slate-400 pb-1">Catatan : <span className="font-normal italic lowercase text-slate-600">{stats.auto.c}</span></div>
+           <div className="border-b-2 border-dotted border-slate-400 pb-1">Tindak Lanjut : <span className="font-normal italic lowercase text-slate-600">{stats.auto.tl}</span></div>
         </div>
 
         <div className="flex justify-between items-start text-xs mt-12 font-bold uppercase">
           <div className="text-center w-64">
              <p className="mb-20">Mengetahui,<br/>Kepala {settings.namaSekolah}</p>
-             <p className="underline">{settings.namaKepalaSekolah}</p>
+             <p className="underline font-black">{settings.namaKepalaSekolah}</p>
              <p className="text-[10px] font-mono">NIP. {settings.nipKepalaSekolah}</p>
           </div>
           <div className="text-center w-64">
              <p className="mb-20">Mojokerto, {displayDate}<br/>Guru yang di Supervisi</p>
-             <p className="underline">{selectedTeacher?.namaGuru || '................................'}</p>
+             <p className="underline font-black">{selectedTeacher?.namaGuru || '................................'}</p>
              <p className="text-[10px]">NIP. {selectedTeacher?.nip || '-'}</p>
           </div>
         </div>
