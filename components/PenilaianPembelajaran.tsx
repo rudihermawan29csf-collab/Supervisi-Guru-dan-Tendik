@@ -224,7 +224,7 @@ const PenilaianPembelajaran: React.FC<Props> = ({ settings, setSettings, records
                </div>
             </div>
             <div className="flex flex-col justify-between h-36">
-               <p className="leading-tight uppercase">Mojokerto, {formatIndonesianDate(selectedTeacher?.tanggalPemb)}<br/>Guru Mata Pelajaran</p>
+               <p className="leading-tight uppercase">Mojokerto, {formatIndonesianDate(selectedTeacher?.tanggalPemb || selectedTeacher?.tanggal)}<br/>Guru Mata Pelajaran</p>
                <div>
                   <p className="underline uppercase font-black">{selectedTeacher?.namaGuru || '________________'}</p>
                   <p className="font-mono text-[11px] uppercase">NIP. {selectedTeacher?.nip || '................'}</p>

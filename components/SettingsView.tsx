@@ -166,6 +166,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSettings, reco
   const addTeacher = () => {
     if (!newTeacher.name || !newTeacher.subject) return;
     const newId = Math.max(0, ...records.map(r => r.id)) + 1;
+    // Updated object to include the new fields defined in types.ts
     const teacher: TeacherRecord = {
       id: newId,
       no: records.length + 1,

@@ -14,158 +14,103 @@ interface ConfigItem {
 const getAutoFeedback = (average: number) => {
   const score = average * 100;
   if (score >= 91) return {
-    kesimpulan: "Sangat Memuaskan. Pengelolaan administrasi sangat tertib, dokumen lengkap, and disusun sesuai dengan standar operasional sekolah.",
-    saran: "Pertahankan konsistensi kinerja and mulailah mengembangkan sistem digitalisasi arsip untuk efisiensi jangka panjang."
+    kesimpulan: "Sangat Memuaskan. Pengelolaan administrasi sangat tertib, dokumen lengkap, dan disusun sesuai dengan standar operasional sekolah.",
+    saran: "Pertahankan konsistensi kinerja dan mulailah mengembangkan sistem digitalisasi arsip untuk efisiensi jangka panjang."
   };
   if (score >= 76) return {
-    kesimpulan: "Baik. Sebagian besar komponen administrasi tersedia and tertata, namun ada beberapa detail kecil yang perlu diperbarui.",
-    saran: "Lakukan pengecekan berkala terhadap masa berlaku dokumen and lengkapi rincian tugas yang masih bersifat umum."
+    kesimpulan: "Baik. Sebagian besar komponen administrasi tersedia dan tertata, namun ada beberapa detail kecil yang perlu diperbarui.",
+    saran: "Lakukan pengecekan berkala terhadap masa berlaku dokumen dan lengkapi rincian tugas yang masih bersifat umum."
   };
   if (score >= 60) return {
-    kesimpulan: "Cukup. Administrasi dasar sudah ada, tetapi sistem pengarsipan and kelengkapan pendukung masih perlu banyak perbaikan.",
-    saran: "Segera lengkapi dokumen yang kurang dalam waktu 1 minggu and mintalah bimbingan teknis dari koordinator tata usaha."
+    kesimpulan: "Cukup. Administrasi dasar sudah ada, tetapi sistem pengarsipan dan kelengkapan pendukung masih perlu banyak perbaikan.",
+    saran: "Segera lengkapi dokumen yang kurang dalam waktu 1 minggu dan mintalah bimbingan teknis dari koordinator tata usaha."
   };
   return {
     kesimpulan: "Kurang. Banyak komponen administrasi penting yang tidak tersedia atau tidak terawat dengan baik.",
-    saran: "Diperlukan pembinaan intensif oleh Kepala Sekolah and penataan ulang seluruh sistem administrasi di bidang ini."
+    saran: "Diperlukan pembinaan intensif oleh Kepala Sekolah dan penataan ulang seluruh sistem administrasi di bidang ini."
   };
 };
 
 const SEKOLAH_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Program Kerja Sekolah' },
+  { no: '1', label: 'Program Kerja Sekolah (RKS/RKAS)' },
   { no: '2', label: 'Kalender Pendidikan' },
-  { no: '3', label: 'Jadwal Kegiatan Pertahun' },
-  { no: '4', label: 'Administrasi Umum/ Surat menyurat', isHeader: true },
-  { no: 'a', label: 'Agenda', isSub: true },
+  { no: '3', label: 'Struktur Organisasi Sekolah' },
+  { no: '4', label: 'Pembagian Tugas Guru dan Tenaga Kependidikan' },
+  { no: '5', label: 'Peraturan Akademik' },
+  { no: '6', label: 'Administrasi Umum/ Surat Menyurat', isHeader: true },
+  { no: 'a', label: 'Buku Agenda Masuk & Keluar', isSub: true },
   { no: 'b', label: 'Buku Ekspedisi', isSub: true },
-  { no: 'c', label: 'Pengarsipan (Filing)', isSub: true },
-  { no: 'd', label: 'Buku Tamu umum', isSub: true },
-  { no: 'e', label: 'Buku Tamu Pembinaan', isSub: true },
-  { no: 'f', label: 'Notulen Rapat', isSub: true },
-  { no: '5', label: 'Struktur Organisasi' },
-  { no: '6', label: 'Pembagian Tugas and Uraiannya' },
-  { no: '7', label: 'Papan Data Ketenagaan and Kesiswaan' },
-  { no: '8', label: 'Program PKG and PKB' },
-  { no: '9', label: 'Rapat Kerja Awal Tahun Ajaran' },
-  { no: '10', label: 'Laporan Bulanan, Tengah Tahunan, and Tahunan' },
-  { no: '11', label: 'Nomor Induk Sekolah (NIS)' },
-  { no: '12', label: 'Ijin Operasional' },
-  { no: '13', label: 'Kelembagaan', isHeader: true },
-  { no: 'a', label: 'Akte Pendirian', isSub: true },
-  { no: 'b', label: 'NPSN', isSub: true },
-  { no: 'c', label: 'Program Kerja Sekolah', isSub: true },
+  { no: 'c', label: 'Sistem Pengarsipan (Filing)', isSub: true },
+  { no: 'd', label: 'Buku Tamu (Umum/Instansi/Pembinaan)', isSub: true },
+  { no: '7', label: 'Papan Data (Ketenagaan/Kesiswaan/Sarpras)' },
+  { no: '8', label: 'Laporan Bulanan/Tahunan' },
 ];
 
 const KETENAGAAN_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Kepala Sekolah', isHeader: true },
-  { no: 'a', label: 'Biodata', isSub: true },
-  { no: 'b', label: 'Program Kerja Kepala Sekolah', isSub: true },
-  { no: 'c', label: 'Buku Agenda Kepala Sekolah', isSub: true },
-  { no: 'd', label: 'Jadwal Supervisi Kelas', isSub: true },
-  { no: 'e', label: 'Pelaksanaan Supervisi Kelas', isSub: true },
-  { no: 'f', label: 'PPK Guru and Pegawai', isSub: true },
-  { no: 'g', label: 'PAK Tahunan', isSub: true },
-  { no: 'h', label: 'PKKS/PKG', isSub: true },
-  { no: '2', label: 'Guru', isHeader: true },
-  { no: 'a', label: 'Biodata', isSub: true },
-  { no: 'b', label: 'Buku Agenda Guru', isSub: true },
-  { no: 'c', label: 'Presensi Guru', isSub: true },
-  { no: 'd', label: 'Kesesuain Tugas and SK', isSub: true },
-  { no: 'e', label: 'Kelebihan Guru per Mata Pelajaran', isSub: true },
-  { no: 'f', label: 'Kekurangan', isSub: true },
-  { no: '3', label: 'Tata Usaha', isHeader: true },
-  { no: 'a', label: 'Daftar Presensi', isSub: true },
-  { no: 'b', label: 'Pembagian Tugas', isSub: true },
-  { no: 'c', label: 'Rincian Tugas', isSub: true },
-  { no: 'd', label: 'Catatan Hasil Pekerjaan/ Jurnal', isSub: true },
-  { no: '4', label: 'Buku Induk Pegawai' },
-  { no: '5', label: 'File', isHeader: true },
-  { no: 'a', label: 'Kepala Sekolah', isSub: true },
-  { no: 'b', label: 'Guru', isSub: true },
-  { no: 'c', label: 'Pegawai', isSub: true },
+  { no: '1', label: 'Buku Induk Pegawai' },
+  { no: '2', label: 'Daftar Urut Kepangkatan (DUK)' },
+  { no: '3', label: 'File Dokumen (SK CPNS/PNS/Gaji Berkala)' },
+  { no: '4', label: 'Daftar Presensi Guru dan Pegawai' },
+  { no: '5', label: 'Data Sertifikasi Guru' },
+  { no: '6', label: 'Uraian Tugas Pendidik & Tenaga Kependidikan' },
+  { no: '7', label: 'Data Diklat/Pelatihan Pegawai' },
+  { no: '8', label: 'Sistem Penilaian Kinerja (PKG/SKP)' },
 ];
 
 const PERLENGKAPAN_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Pemilikan Gedung', isHeader: true },
-  { no: 'a', label: 'Milik Sendiri', isSub: true },
-  { no: 'b', label: 'Sewa', isSub: true },
-  { no: 'c', label: 'Menumpang', isSub: true },
-  { no: '2', label: 'Buku Induk Barang Inventaris' },
-  { no: '3', label: 'Buku Golongan Barang Inventaris' },
-  { no: '4', label: 'Daftar Barang Inventaris Kelas/ Ruang' },
-  { no: '5', label: 'Buku Barang Inventaris' },
-  { no: '6', label: 'Buku Pembelian Barang' },
-  { no: '7', label: 'Buku Penerimaan Barang' },
-  { no: '8', label: 'Buku/ Kartu Stok Barang' },
-  { no: '9', label: 'Kartu Pemeliharaan' },
-  { no: '10', label: 'Penghapusan Barang' },
-  { no: '11', label: 'Nomor Inventaris' },
-  { no: '12', label: 'Barang Inventaris', isHeader: true },
-  { no: 'a', label: 'Dipakai Sendiri', isSub: true },
-  { no: 'b', label: 'Dipakai Bersama', isSub: true },
-  { no: '13', label: 'Laporan' },
+  { no: '1', label: 'Buku Induk Barang Inventaris' },
+  { no: '2', label: 'Buku Golongan Barang Inventaris' },
+  { no: '3', label: 'Buku Catatan Non Inventaris' },
+  { no: '4', label: 'Daftar Inventaris Ruangan (DIR)' },
+  { no: '5', label: 'Buku Penerimaan & Pengeluaran Barang' },
+  { no: '6', label: 'Kartu Stok Barang' },
+  { no: '7', label: 'Dokumen Penghapusan Barang' },
+  { no: '8', label: 'Program Perawatan/Pemeliharaan Sarpras' },
 ];
 
 const PERPUSTAKAAN_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Ruang Perpustakaan' },
-  { no: '2', label: 'Pengelola' },
-  { no: '3', label: 'Program Kerja' },
-  { no: '4', label: 'Perlengkapan', isHeader: true },
-  { no: 'a', label: 'Buku Induk Perpustakaan', isSub: true },
-  { no: 'b', label: 'Klasifikasi Buku', isSub: true },
-  { no: 'c', label: 'Katalog', isSub: true },
-  { no: 'd', label: 'Kartu Peminjam', isSub: true },
-  { no: 'e', label: 'Buku Peminjam', isSub: true },
-  { no: 'f', label: 'Daftar Pengunjung', isSub: true },
-  { no: 'g', label: 'Kartu Buku', isSub: true },
-  { no: '5', label: 'Tempat Penyimpanan', isHeader: true },
-  { no: 'a', label: 'Lemari', isSub: true },
-  { no: 'b', label: 'Rak', isSub: true },
-  { no: 'c', label: 'Meja Baca + Kursi', isSub: true },
-  { no: '6', label: 'Pemeliharaan', isHeader: true },
-  { no: 'a', label: 'Ruang', isSub: true },
-  { no: 'b', label: 'Buku', isSub: true },
-  { no: 'c', label: 'Kebersihan', isSub: true },
-  { no: '7', label: 'Tata Tertib' },
-  { no: '8', label: 'Laporan' },
+  { no: '1', label: 'Program Kerja Perpustakaan' },
+  { no: '2', label: 'Buku Induk Perpustakaan' },
+  { no: '3', label: 'Sistem Klasifikasi Buku (DDC)' },
+  { no: '4', label: 'Katalog Buku (Manual/Digital)' },
+  { no: '5', label: 'Buku Pengunjung & Peminjam' },
+  { no: '6', label: 'Kartu Anggota & Kartu Buku' },
+  { no: '7', label: 'Laporan Statistik Perpustakaan' },
+  { no: '8', label: 'Tata Tertib Perpustakaan' },
 ];
 
-const LAB_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Ruang Laboratorium' },
-  { no: '2', label: 'Pengelola Laboratorium (Laboran)' },
-  { no: '3', label: 'Jadwal Penggunaan' },
-  { no: '4', label: 'Tata Tertib' },
-  { no: '5', label: 'Daftar Bahan' },
-  { no: '6', label: 'Daftar Alat' },
-  { no: '7', label: 'Daftar Hasil Praktikum' },
-  { no: '8', label: 'Penempatan Alat and Bahan' },
-  { no: '9', label: 'Pemeliharaan Lab and alat' },
-  { no: '10', label: 'Alat Pemadam Kebakaran' },
-  { no: '11', label: 'Tersedianya Alat PPPK' },
+const LAB_IPA_ITEMS: ConfigItem[] = [
+  { no: '1', label: 'Program Kerja Laboratorium IPA' },
+  { no: '2', label: 'Jadwal Penggunaan Laboratorium' },
+  { no: '3', label: 'Buku Inventaris Alat & Bahan' },
+  { no: '4', label: 'Daftar Alat/Bahan Pecah Belah & Habis Pakai' },
+  { no: '5', label: 'Buku Catatan Kegiatan Praktikum' },
+  { no: '6', label: 'Tata Tertib Laboratorium' },
+  { no: '7', label: 'Alat Pemadam Api Ringan (APAR) & P3K' },
+  { no: '8', label: 'Laporan Kerusakan Alat' },
+];
+
+const LAB_KOMPUTER_ITEMS: ConfigItem[] = [
+  { no: '1', label: 'Program Kerja Lab Komputer' },
+  { no: '2', label: 'Jadwal Penggunaan Ruang Komputer' },
+  { no: '3', label: 'Buku Inventaris Komputer & Periferal' },
+  { no: '4', label: 'Log Book Pemakaian Komputer' },
+  { no: '5', label: 'Kartu Riwayat Perawatan PC/Laptop' },
+  { no: '6', label: 'Daftar Software & Lisensi' },
+  { no: '7', label: 'Tata Tertib Penggunaan IT' },
+  { no: '8', label: 'Laporan Kondisi Jaringan (LAN/Wifi)' },
 ];
 
 const KESISWAAN_ITEMS: ConfigItem[] = [
-  { no: '1', label: 'Buku Induk' },
+  { no: '1', label: 'Buku Induk Siswa (Digital/Cetak)' },
   { no: '2', label: 'Buku Klaper' },
-  { no: '3', label: 'Buku Mutasi' },
-  { no: '4', label: 'Daftar Hadir Siswa' },
-  { no: '5', label: 'Tata Tertib' },
-  { no: '6', label: 'Buku Kelas/ Legger' },
-  { no: '7', label: 'Papan Absen Kelas' },
-  { no: '8', label: 'Daftar kelas' },
-  { no: '9', label: 'O S I S', isHeader: true },
-  { no: 'a', label: 'Struktur Organisasi', isSub: true },
-  { no: 'b', label: 'Pengurus', isSub: true },
-  { no: 'c', label: 'Program', isSub: true },
-  { no: 'd', label: 'Pelaksanaan', isSub: true },
-  { no: 'e', label: 'Laporan Dokumentasi Prestasi Siswa', isSub: true },
-  { no: '10', label: 'Prestasi Siswa', isHeader: true },
-  { no: 'a', label: 'Bea Siswa', isSub: true },
-  { no: 'b', label: 'Bidang Studi/ O.R/ Seni Budaya/Lain2', isSub: true },
-  { no: 'c', label: '................................................', isSub: true },
-  { no: 'd', label: '................................................', isSub: true },
-  { no: '11', label: 'Daftar (Daftar Peserta UN)' },
-  { no: '12', label: 'Dokumen Penyerahan STTB' },
+  { no: '3', label: 'Buku Mutasi Siswa' },
+  { no: '4', label: 'Data Statistik Siswa' },
+  { no: '5', label: 'Dokumen PPDB' },
+  { no: '6', label: 'Program Ekstrakurikuler & OSIS' },
+  { no: '7', label: 'Buku Catatan Prestasi Siswa' },
+  { no: '8', label: 'Buku Absensi Kelas' },
+  { no: '9', label: 'Dokumen Penelusuran Tamatan' },
 ];
 
 interface Props {
@@ -183,10 +128,11 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
 
   const currentItems = useMemo(() => {
     if (type === 'ketenagaan') return KETENAGAAN_ITEMS;
-    if (type === 'perlengkapan') return PERLENGKAPAN_ITEMS;
     if (type === 'perpustakaan') return PERPUSTAKAAN_ITEMS;
+    if (type === 'perlengkapan') return PERLENGKAPAN_ITEMS;
+    if (type === 'lab-ipa') return LAB_IPA_ITEMS;
+    if (type === 'lab-komputer') return LAB_KOMPUTER_ITEMS;
     if (type === 'kesiswaan') return KESISWAAN_ITEMS;
-    if (type === 'lab-ipa' || type === 'lab-komputer') return LAB_ITEMS;
     return SEKOLAH_ITEMS;
   }, [type]);
 
@@ -194,17 +140,14 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
     return adminRecords.find(r => {
       if (r.semester !== activeSemester) return false;
       const activity = r.kegiatan.toLowerCase();
-      // Perbaikan logika pencocokan agar lebih fleksibel terhadap kata kunci "IPA", "Komputer", dll.
-      if (type === 'lab-ipa') return activity.includes('laboratorium ipa') || (activity.includes('lab') && activity.includes('ipa'));
-      if (type === 'lab-komputer') return activity.includes('laboratorium komputer') || (activity.includes('lab') && activity.includes('komputer'));
-      if (type === 'sekolah') return activity.includes('administrasi sekolah');
-      if (type === 'kesiswaan') return activity.includes('kesiswaan');
-      if (type === 'ketenagaan') return activity.includes('ketenagaan');
-      if (type === 'perlengkapan') return activity.includes('perlengkapan');
-      if (type === 'perpustakaan') return activity.includes('perpustakaan');
-      
-      // Fix: Casting 'type' to string because TypeScript's exhaustiveness check makes it 'never' here.
-      return activity.includes((type as string).replace('-', ' ').toLowerCase());
+      if (type === 'lab-ipa' && activity.includes('ipa')) return true;
+      if (type === 'lab-komputer' && activity.includes('komp')) return true;
+      if (type === 'perpustakaan' && activity.includes('perpustakaan')) return true;
+      if (type === 'ketenagaan' && activity.includes('ketenagaan')) return true;
+      if (type === 'perlengkapan' && (activity.includes('perlengkapan') || activity.includes('sarpras'))) return true;
+      if (type === 'sekolah' && activity.includes('sekolah')) return true;
+      if (type === 'kesiswaan' && activity.includes('kesiswaan')) return true;
+      return false;
     });
   }, [adminRecords, activeSemester, type]);
 
@@ -246,7 +189,7 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
 
   const handleScoreChange = (idx: number, val: number) => {
     setScores(p => ({ ...p, [idx]: val }));
-    setRemarks(p => ({ ...p, [idx]: val === 1 ? "Tersedia" : "Belum Tersedia" }));
+    setRemarks(p => ({ ...p, [idx]: val === 1 ? "Lengkap/Tersedia" : "Belum Tersedia" }));
   };
 
   const exportPDF = () => {
@@ -262,12 +205,12 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
       catatan: kesimpulan, 
       tindakLanjut: saran 
     });
-    alert(`Hasil supervisi tendik berhasil disimpan!`);
+    alert(`Hasil supervisi ${type} berhasil disimpan!`);
   };
 
   const title = useMemo(() => {
     if (type === 'ketenagaan') return 'SUPERVISI ADMINISTRASI KETENAGAAN';
-    if (type === 'perlengkapan') return 'SUPERVISI ADMINISTRASI PERLENGKAPAN';
+    if (type === 'perlengkapan') return 'SUPERVISI ADMINISTRASI PERLENGKAPAN / SARPRAS';
     if (type === 'perpustakaan') return 'SUPERVISI ADMINISTRASI PERPUSTAKAAN';
     if (type === 'lab-ipa') return 'SUPERVISI LABORATORIUM IPA';
     if (type === 'lab-komputer') return 'SUPERVISI LABORATORIUM KOMPUTER';
@@ -288,7 +231,7 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
         </div>
       </div>
 
-      <div id="tendik-instr-export" className="bg-white shadow-xl border border-slate-300 p-10 max-w-5xl mx-auto text-gray-900 animate-fadeIn mb-20">
+      <div id="tendik-instr-export" className="bg-white shadow-xl border border-slate-300 p-10 max-w-5xl mx-auto text-gray-900 font-serif mb-20">
         <div className="text-center mb-8 border-b-4 border-double border-slate-900 pb-2">
             <h1 className="text-xl font-black uppercase tracking-widest leading-none">{title}</h1>
             <h2 className="text-lg font-bold uppercase mt-1">SEMESTER {activeSemester.toUpperCase()} *)</h2>
@@ -296,24 +239,25 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
         </div>
 
         <div className="grid grid-cols-1 gap-y-0.5 text-xs font-bold mb-8 max-w-2xl">
-             <div className="flex"><span className="w-32">Nama Sekolah</span><span>: {settings.namaSekolah}</span></div>
-             <div className="flex"><span className="w-32">Alamat Sekolah</span><span>: Jl. Tirta Wening Ds. Kembangbelor</span></div>
-             <div className="flex"><span className="w-32">Hari / Tanggal</span><span className="text-blue-700">: {scheduleData ? `${scheduleData.hari}, ${scheduleData.tgl}` : '..............................'}</span></div>
-             <div className="flex"><span className="w-32">Nama Petugas</span><span className="text-blue-700">: {scheduleData?.nama || '..............................'}</span></div>
+             <div className="flex"><span className="w-40">Nama Sekolah</span><span>: {settings.namaSekolah}</span></div>
+             <div className="flex"><span className="w-40">Alamat Sekolah</span><span>: Jl. Tirta Wening Ds. Kembangbelor</span></div>
+             <div className="flex"><span className="w-40">Hari / Tanggal</span><span className="text-blue-700">: {scheduleData ? `${scheduleData.hari}, ${scheduleData.tgl}` : '..............................'}</span></div>
+             <div className="flex"><span className="w-40">Nama Petugas</span><span className="text-blue-700 uppercase">: {scheduleData?.nama || '..............................'}</span></div>
+             <div className="flex"><span className="w-40">NIP Petugas</span><span className="text-blue-700">: {scheduleData?.nip || '..............................'}</span></div>
         </div>
 
         <table className="w-full border-collapse border-2 border-slate-900 text-[10px]">
           <thead>
             <tr className="bg-slate-100 font-black uppercase text-center">
               <th rowSpan={2} className="border-2 border-slate-900 p-2 w-10">NO</th>
-              <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left">KEGIATAN</th>
+              <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left">KOMPONEN KEGIATAN</th>
               <th colSpan={2} className="border-2 border-slate-900 p-1">JAWABAN</th>
-              <th rowSpan={2} className="border-2 border-slate-900 p-2 w-16">NILAI</th>
+              <th rowSpan={2} className="border-2 border-slate-900 p-2 w-16">SKOR</th>
               <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left">KETERANGAN</th>
             </tr>
             <tr className="bg-slate-50 font-bold text-center">
-              <th className="border-2 border-slate-900 p-1 w-16 text-[9px]">YA/ADA</th>
-              <th className="border-2 border-slate-900 p-1 w-16 text-[9px]">TIDAK</th>
+              <th className="border-2 border-slate-900 p-1 w-16 text-[9px]">ADA (1)</th>
+              <th className="border-2 border-slate-900 p-1 w-16 text-[9px]">TIDAK (0)</th>
             </tr>
           </thead>
           <tbody>
@@ -340,10 +284,10 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
               </tr>
             ))}
             <tr className="bg-slate-100 font-black">
-               <td colSpan={2} className="border-2 border-slate-900 p-2 text-center uppercase tracking-widest">JUMLAH / RATA-RATA</td>
+               <td colSpan={2} className="border-2 border-slate-900 p-2 text-center uppercase tracking-widest">HASIL KETERCAPAIAN (%)</td>
                <td colSpan={2} className="border-2 border-slate-900 p-2 text-center bg-blue-50">{stats.totalScore}</td>
-               <td className="border-2 border-slate-900 p-2 text-center bg-blue-100">{(stats.average * 100).toFixed(0)}%</td>
-               <td className="border-2 border-slate-900 p-2 text-center uppercase text-[9px] bg-slate-50 italic">
+               <td className="border-2 border-slate-900 p-2 text-center bg-blue-100 font-black text-lg">{(stats.average * 100).toFixed(0)}%</td>
+               <td className="border-2 border-slate-900 p-2 text-center uppercase text-[9px] bg-slate-50 italic font-black">
                   {stats.average >= 0.91 ? 'SANGAT BAIK' : stats.average >= 0.76 ? 'BAIK' : stats.average >= 0.60 ? 'CUKUP' : 'KURANG'}
                </td>
             </tr>
@@ -352,12 +296,12 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
 
         <div className="mt-8 space-y-4">
              <div className="border-b border-slate-400 pb-1">
-                <h3 className="text-sm font-bold uppercase tracking-tight text-blue-700">KESIMPULAN :</h3>
-                <textarea value={kesimpulan} onChange={e => setKesimpulan(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium" />
+                <h3 className="text-sm font-bold uppercase tracking-tight text-blue-700">KESIMPULAN HASIL SUPERVISI :</h3>
+                <textarea value={kesimpulan} onChange={e => setKesimpulan(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium leading-relaxed" />
              </div>
              <div className="border-b border-slate-400 pb-1">
-                <h3 className="text-sm font-bold uppercase tracking-tight text-emerald-700">SARAN :</h3>
-                <textarea value={saran} onChange={e => setSaran(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium" />
+                <h3 className="text-sm font-bold uppercase tracking-tight text-emerald-700">SARAN TINDAK LANJUT :</h3>
+                <textarea value={saran} onChange={e => setSaran(e.target.value)} rows={2} className="w-full bg-transparent outline-none text-sm italic py-1 font-medium leading-relaxed" />
              </div>
         </div>
 
@@ -367,8 +311,8 @@ const InstrumentTendikView: React.FC<Props> = ({ type, settings, adminRecords, i
                  <div><p className="underline uppercase font-black">{settings.namaKepalaSekolah}</p><p className="font-mono text-xs uppercase">NIP. {settings.nipKepalaSekolah}</p></div>
               </div>
               <div className="flex flex-col justify-between h-36">
-                 <p className="leading-tight">Mojokerto, <span className="text-blue-700">{scheduleData?.tgl || '.....................'}</span><br/>Petugas,</p>
-                 <div><p className="underline uppercase font-black text-blue-700">{scheduleData?.nama || '................................................'}</p><p className="font-mono text-xs uppercase text-blue-700">NIP. {scheduleData?.nip || '................................................'}</p></div>
+                 <p className="leading-tight">Mojokerto, <span className="text-blue-700">{scheduleData?.tgl || '.....................'}</span><br/>Petugas Supervisor,</p>
+                 <div><p className="underline uppercase font-black">................................................</p><p className="font-mono text-xs uppercase">NIP. ................................................</p></div>
               </div>
         </div>
       </div>

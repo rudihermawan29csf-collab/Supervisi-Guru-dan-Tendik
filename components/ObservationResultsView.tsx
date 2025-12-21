@@ -56,6 +56,7 @@ interface Props {
   onSave: (teacherId: number, type: string, semester: string, data: InstrumentResult) => void;
 }
 
+/* Fix: Component must return JSX and not void */
 const ObservationResultsView: React.FC<Props> = ({ settings, setSettings, records, instrumentResults, onSave }) => {
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | ''>('');
   const [scores, setScores] = useState<Record<number, number>>({});
@@ -81,6 +82,10 @@ const ObservationResultsView: React.FC<Props> = ({ settings, setSettings, record
     return { totalScore, average };
   }, [scores]);
 
+  const handleScoreChange = (id: number, val: number) => {
+    setScores(prev => ({ ...prev, [id]: val }));
+  };
+
   const handleSave = () => {
     if (selectedTeacherId === '') return alert('Pilih guru terlebih dahulu');
     onSave(selectedTeacherId, 'hasil-observasi', settings.semester, {
@@ -97,139 +102,65 @@ const ObservationResultsView: React.FC<Props> = ({ settings, setSettings, record
     html2pdf().set(opt).from(element).save();
   };
 
-  const exportWord = () => {
-    const html = document.getElementById('obs-results-export')?.innerHTML;
-    const blob = new Blob(['\ufeff', html || ''], { type: 'application/msword' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `HasilObs_${selectedTeacher?.namaGuru || 'Guru'}_${settings.semester}.doc`;
-    link.click();
-  };
-
-  const exportExcel = () => {
-    const html = document.getElementById('obs-results-export')?.innerHTML;
-    const blob = new Blob(['\ufeff', html || ''], { type: 'application/vnd.ms-excel' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `HasilObs_${selectedTeacher?.namaGuru || 'Guru'}_${settings.semester}.xls`;
-    link.click();
-  };
-
-  const handleScoreChange = (id: number, val: number) => {
-    setScores(prev => ({ ...prev, [id]: val }));
-  };
-
   return (
     <div className="space-y-6 animate-fadeIn pb-20">
       <div className="flex flex-col md:flex-row justify-between items-center no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-100 gap-4">
-        <div className="flex items-center gap-3">
-          <select 
-            value={selectedTeacherId} 
-            onChange={(e) => setSelectedTeacherId(Number(e.target.value))} 
-            className="px-4 py-2 border rounded-xl font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">-- Pilih Guru --</option>
-            {records.map(t => <option key={t.id} value={t.id}>{t.namaGuru}</option>)}
-          </select>
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-             <button onClick={() => setSettings({...settings, semester: 'Ganjil'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${settings.semester === 'Ganjil' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Ganjil</button>
-             <button onClick={() => setSettings({...settings, semester: 'Genap'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${settings.semester === 'Genap' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Genap</button>
-          </div>
-        </div>
+        <select value={selectedTeacherId} onChange={(e) => setSelectedTeacherId(Number(e.target.value))} className="px-4 py-2 border rounded-xl font-bold text-blue-600 outline-none">
+          <option value="">-- Pilih Guru --</option>
+          {records.map(t => <option key={t.id} value={t.id}>{t.namaGuru}</option>)}
+        </select>
         <div className="flex gap-2">
             <button onClick={exportPDF} className="px-4 py-2 bg-red-600 text-white rounded-lg font-black text-[9px] uppercase shadow">PDF</button>
-            <button onClick={exportWord} className="px-4 py-2 bg-blue-800 text-white rounded-lg font-black text-[9px] uppercase shadow">Word</button>
-            <button onClick={exportExcel} className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase shadow">Excel</button>
             <button onClick={handleSave} disabled={!selectedTeacher} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-black text-[10px] uppercase shadow-lg ml-2">Simpan Hasil</button>
         </div>
       </div>
 
-      <div id="obs-results-export" className="bg-white shadow-xl border border-slate-300 p-12 max-w-5xl mx-auto text-gray-900 print:shadow-none print:border-none print:p-0">
-        <div className="text-center mb-10 border-b-2 border-slate-900 pb-2">
-          <h1 className="text-xl font-black uppercase tracking-widest underline underline-offset-4">HASIL OBSERVASI</h1>
-          <p className="text-sm font-bold mt-2">Semester {settings.semester.toUpperCase()} • {settings.namaSekolah}</p>
+      <div id="obs-results-export" className="bg-white shadow-xl border border-slate-300 p-12 max-w-5xl mx-auto text-gray-900">
+        <div className="text-center mb-8 border-b-2 border-slate-900 pb-2">
+          <h1 className="text-xl font-black uppercase">Hasil Observasi Pembelajaran</h1>
+          <p className="text-sm font-bold">Semester {settings.semester} • {settings.namaSekolah}</p>
         </div>
 
-        <table className="w-full border-collapse border-2 border-slate-900 text-[11px]">
+        <div className="mb-6 text-sm font-bold">
+           <div className="flex"><span className="w-32">Nama Guru</span><span>: {selectedTeacher?.namaGuru || '...................'}</span></div>
+           <div className="flex"><span className="w-32">Mata Pelajaran</span><span>: {selectedTeacher?.mataPelajaran || '...................'}</span></div>
+        </div>
+
+        <table className="w-full border-collapse border-2 border-slate-900 text-xs">
           <thead>
-            <tr className="bg-slate-100 font-black uppercase text-center">
-              <th rowSpan={2} className="border-2 border-slate-900 p-2 w-10">No</th>
-              <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left w-36">Komponen yang dianalisis</th>
-              <th rowSpan={2} className="border-2 border-slate-900 p-2 text-left">Aspek yang disupervisi</th>
-              <th colSpan={5} className="border-2 border-slate-900 p-1">Hasil Penilaian</th>
-            </tr>
-            <tr className="bg-slate-50 font-bold text-center">
-              <th className="border-2 border-slate-900 p-1 w-10">1</th>
-              <th className="border-2 border-slate-900 p-1 w-10">2</th>
-              <th className="border-2 border-slate-900 p-1 w-10">3</th>
-              <th className="border-2 border-slate-900 p-1 w-10">4</th>
-              <th className="border-2 border-slate-900 p-1 w-10">5</th>
+            <tr className="bg-slate-100 font-bold uppercase text-center">
+              <th className="border-2 border-slate-900 p-2 w-10">No</th>
+              <th className="border-2 border-slate-900 p-2 text-left">Aspek yang Diobservasi</th>
+              <th className="border-2 border-slate-900 p-2 w-20">Skor (1-4)</th>
             </tr>
           </thead>
           <tbody>
             {GROUPS.map((group, gIdx) => (
               <React.Fragment key={gIdx}>
+                <tr className="bg-slate-50 font-bold"><td className="border-2 border-slate-900 p-2 text-center">{group.no}</td><td colSpan={2} className="border-2 border-slate-900 p-2 uppercase">{group.title}</td></tr>
                 {group.items.map((item, iIdx) => (
-                  <tr key={item.id} className="hover:bg-slate-50 align-top">
-                    {iIdx === 0 && (
-                      <>
-                        <td rowSpan={group.items.length} className="border-2 border-slate-900 p-2 text-center font-bold">{group.no}.</td>
-                        <td rowSpan={group.items.length} className="border-2 border-slate-900 p-2 font-bold">{group.title}</td>
-                      </>
-                    )}
-                    <td className="border-2 border-slate-900 p-2 leading-relaxed flex items-start">
-                       <span className="mr-2 leading-none">•</span>
-                       <span>{item.label}</span>
+                  <tr key={item.id}>
+                    <td className="border-2 border-slate-900"></td>
+                    <td className="border-2 border-slate-900 p-2 pl-6">{iIdx + 1}. {item.label}</td>
+                    <td className="border-2 border-slate-900 p-1 text-center">
+                      <input 
+                        type="number" min="1" max="4" 
+                        value={scores[item.id] || ''} 
+                        onChange={e => handleScoreChange(item.id, Number(e.target.value))}
+                        className="w-12 text-center border rounded no-print"
+                      />
+                      <span className="hidden print:inline">{scores[item.id] || '-'}</span>
                     </td>
-                    {[1, 2, 3, 4, 5].map(val => (
-                      <td 
-                        key={val} 
-                        className="border-2 border-slate-900 p-1 text-center cursor-pointer no-print" 
-                        onClick={() => handleScoreChange(item.id, val)}
-                      >
-                        <div className={`w-5 h-5 mx-auto border border-slate-900 flex items-center justify-center transition-all ${scores[item.id] === val ? 'bg-slate-800 text-white' : 'bg-white'}`}>
-                          {scores[item.id] === val && <span className="font-black">v</span>}
-                        </div>
-                      </td>
-                    ))}
-                    {[1, 2, 3, 4, 5].map(val => (
-                       <td key={`p-${val}`} className="border-2 border-slate-900 p-1 text-center hidden print:table-cell font-bold">
-                         {scores[item.id] === val ? 'v' : ''}
-                       </td>
-                    ))}
                   </tr>
                 ))}
               </React.Fragment>
             ))}
-            <tr className="bg-slate-100 font-black">
-              <td colSpan={3} className="border-2 border-slate-900 p-2 text-right uppercase">Jumlah</td>
-              <td colSpan={5} className="border-2 border-slate-900 p-2 text-center text-blue-700">{stats.totalScore}</td>
-            </tr>
-            <tr className="bg-white font-black">
-              <td colSpan={3} className="border-2 border-slate-900 p-2 text-right uppercase">Rata-rata</td>
-              <td colSpan={5} className="border-2 border-slate-900 p-2 text-center text-indigo-700">{stats.average}</td>
+            <tr className="bg-slate-100 font-bold">
+              <td colSpan={2} className="border-2 border-slate-900 p-2 text-right uppercase">Rata-rata Skor</td>
+              <td className="border-2 border-slate-900 p-2 text-center text-blue-700">{stats.average}</td>
             </tr>
           </tbody>
         </table>
-
-        <div className="mt-16 text-sm font-bold tracking-tight">
-            <div className="flex justify-between items-start">
-               <div className="w-64 text-center">
-                  <p className="mb-20">Guru yang di Supervisi,</p>
-                  <div>
-                     <p className="underline uppercase font-black">{selectedTeacher?.namaGuru || '............................'}</p>
-                     <p className="font-mono text-xs uppercase">NIP. {selectedTeacher?.nip || '............................'}</p>
-                  </div>
-               </div>
-               <div className="text-center w-80">
-                  <p className="mb-20">Mojokerto, ...............................<br/>Kepala {settings.namaSekolah},</p>
-                  <div>
-                     <p className="underline uppercase font-black">{settings.namaKepalaSekolah}</p>
-                     <p className="font-mono text-xs uppercase">NIP. {settings.nipKepalaSekolah}</p>
-                  </div>
-               </div>
-            </div>
-        </div>
       </div>
     </div>
   );

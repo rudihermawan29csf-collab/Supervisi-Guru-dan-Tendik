@@ -9,20 +9,22 @@ interface Props {
   setSettings: (s: AppSettings) => void;
 }
 
-const getLogText = (val: number, type: 'persiapan' | 'pelaksanaan' | 'hasil') => {
-  if (type === 'persiapan') {
-    if (val >= 7) return "Perangkat lengkap dan sesuai CP.";
-    if (val >= 5) return "Perangkat cukup lengkap, revisi sedikit.";
-    return "Perangkat belum lengkap.";
-  }
-  if (type === 'pelaksanaan') {
-    if (val >= 7) return "Pembelajaran sangat interaktif & inovatif.";
-    if (val >= 5) return "Pembelajaran cukup lancar, manajemen kelas baik.";
-    return "Metode pembelajaran perlu variasi.";
-  }
-  if (val >= 18) return "Tujuan pembelajaran tercapai dengan sangat baik.";
-  if (val >= 14) return "Hasil pembelajaran memadai, target terpenuhi.";
-  return "Hasil perlu tindak lanjut intensif.";
+const getLogPersiapanText = (score: number) => {
+  if (score >= 12) return "Perangkat pendahuluan sangat lengkap, motivasi dan apersepsi sinkron dengan CP.";
+  if (score >= 8) return "Perangkat pendahuluan memadai, tujuan pembelajaran sudah disampaikan.";
+  return "Perangkat pendahuluan kurang lengkap, perlu penguatan pada aspek motivasi siswa.";
+};
+
+const getLogPelaksanaanText = (score: number) => {
+  if (score >= 40) return "Sangat inovatif, manajemen kelas prima, interaksi 4C (Abad 21) terlihat nyata.";
+  if (score >= 30) return "Langkah pembelajaran runut, penguasaan materi baik, media digunakan secara relevan.";
+  return "Cenderung konvensional (ceramah), partisipasi aktif siswa masih perlu didorong.";
+};
+
+const getLogHasilText = (totalScore: number) => {
+  if (totalScore >= 70) return "Target kompetensi tercapai optimal. Siswa sangat antusias dan mandiri.";
+  if (totalScore >= 55) return "Target kompetensi tercapai. Perlu penguatan pada asesmen formatif.";
+  return "Capaian belum optimal. Direkomendasikan untuk bimbingan teknis modul ajar.";
 };
 
 const SupervisionLogView: React.FC<Props> = ({ settings, records, instrumentResults, setSettings }) => {
@@ -31,23 +33,23 @@ const SupervisionLogView: React.FC<Props> = ({ settings, records, instrumentResu
   const logData = useMemo(() => {
     return records
       .filter(r => r.semester === activeSemester)
-      .map((teacher, idx) => {
+      .map((teacher) => {
         const key = `${teacher.id}-pembelajaran-${activeSemester}`;
         const result = instrumentResults[key];
         
         let pScore = 0; let lScore = 0; let eScore = 0;
         if (result && result.scores) {
           const s = result.scores as Record<number, number>;
-          pScore = (s[0] || 0) + (s[1] || 0) + (s[3] || 0) + (s[4] || 0);
-          lScore = (s[7] || 0) + (s[9] || 0) + (s[21] || 0) + (s[28] || 0);
-          eScore = (s[30] || 0) + (s[32] || 0) + (s[35] || 0);
+          for(let i=1; i<=7; i++) pScore += (s[i] || 0);
+          for(let i=8; i<=30; i++) lScore += (s[i] || 0);
+          for(let i=31; i<=38; i++) eScore += (s[i] || 0);
         }
 
         return {
           ...teacher,
-          persiapanLog: getLogText(pScore, 'persiapan'),
-          pelaksanaanLog: getLogText(lScore, 'pelaksanaan'),
-          hasilLog: getLogText(pScore + lScore + eScore, 'hasil')
+          persiapanLog: getLogPersiapanText(pScore),
+          pelaksanaanLog: getLogPelaksanaanText(lScore),
+          hasilLog: getLogHasilText(pScore + lScore + eScore)
         };
       });
   }, [records, activeSemester, instrumentResults]);
@@ -55,50 +57,54 @@ const SupervisionLogView: React.FC<Props> = ({ settings, records, instrumentResu
   return (
     <div className="animate-fadeIn space-y-6">
       <div className="flex justify-between items-center no-print">
-        <h2 className="text-xl font-bold uppercase">Catatan Pelaksanaan Supervisi</h2>
+        <div>
+          <h2 className="text-xl font-black uppercase tracking-tight">Catatan Pelaksanaan Supervisi</h2>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jurnal Evaluasi Naratif Performa Guru</p>
+        </div>
         <div className="flex gap-2">
-           <button onClick={() => setSettings({...settings, semester: 'Ganjil'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${activeSemester === 'Ganjil' ? 'bg-blue-600 text-white' : 'bg-slate-200'}`}>Ganjil</button>
-           <button onClick={() => setSettings({...settings, semester: 'Genap'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${activeSemester === 'Genap' ? 'bg-blue-600 text-white' : 'bg-slate-200'}`}>Genap</button>
-           <button onClick={() => window.print()} className="px-3 py-1.5 bg-slate-800 text-white rounded-lg font-bold text-[9px] uppercase">Cetak Catatan</button>
+           <div className="flex bg-slate-200 p-1 rounded-xl shadow-inner">
+             <button onClick={() => setSettings({...settings, semester: 'Ganjil'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${activeSemester === 'Ganjil' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>Ganjil</button>
+             <button onClick={() => setSettings({...settings, semester: 'Genap'})} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${activeSemester === 'Genap' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>Genap</button>
+           </div>
+           <button onClick={() => window.print()} className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase shadow-lg ml-2">Cetak Laporan</button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-8 print:p-0">
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-10 font-serif">
         <div className="text-center border-b-2 border-slate-900 mb-8 pb-4 uppercase">
-          <h1 className="text-lg font-bold">Catatan Supervisi Pembelajaran</h1>
-          <h2 className="text-md font-bold">{settings.namaSekolah}</h2>
-          <p className="text-[10px] font-bold mt-1 italic">Tahun Pelajaran {settings.tahunPelajaran}</p>
+          <h1 className="text-lg font-black tracking-widest leading-none">CATATAN PELAKSANAAN SUPERVISI GURU</h1>
+          <h2 className="text-md font-bold mt-1 uppercase">{settings.namaSekolah}</h2>
+          <p className="text-[10px] font-bold mt-1 italic uppercase tracking-tight">TP {settings.tahunPelajaran} • Semester {activeSemester}</p>
         </div>
 
-        <table className="w-full border-collapse text-[9px] border border-slate-800">
+        <table className="w-full border-collapse text-[9px] border-2 border-slate-800">
           <thead>
-            <tr className="bg-slate-900 text-white uppercase text-center">
+            <tr className="bg-slate-50 text-slate-900 uppercase text-center font-black">
               <th className="border border-slate-800 p-2 w-8">No</th>
               <th className="border border-slate-800 p-2 text-left">Nama Guru</th>
               <th className="border border-slate-800 p-2">Hari / Tanggal</th>
-              <th className="border border-slate-800 p-2">Jam Ke</th>
+              <th className="border border-slate-800 p-2 w-10">Jam</th>
               <th className="border border-slate-800 p-2 text-left">Mata Pelajaran</th>
-              <th className="border border-slate-800 p-2 text-left">Persiapan</th>
-              <th className="border border-slate-800 p-2 text-left">Pelaksanaan</th>
-              <th className="border border-slate-800 p-2 text-left">Hasil</th>
+              <th className="border border-slate-800 p-2 w-12">Kelas</th>
+              <th className="border border-slate-800 p-2 text-left w-1/4">Evaluasi Persiapan</th>
+              <th className="border border-slate-800 p-2 text-left w-1/4">Evaluasi Pelaksanaan</th>
+              <th className="border border-slate-800 p-2 text-left">Hasil / Kesimpulan</th>
             </tr>
           </thead>
           <tbody>
             {logData.map((d, i) => (
-              <tr key={d.id} className="hover:bg-slate-50">
-                <td className="border border-slate-800 p-2 text-center">{i + 1}</td>
-                <td className="border border-slate-800 p-2 font-bold uppercase">{d.namaGuru}</td>
-                <td className="border border-slate-800 p-2 text-center">{d.hari}, {d.tanggal}</td>
-                <td className="border border-slate-800 p-2 text-center">{d.jamKe}</td>
-                <td className="border border-slate-800 p-2 italic">{d.mataPelajaran}</td>
-                <td className="border border-slate-800 p-2">{d.persiapanLog}</td>
-                <td className="border border-slate-800 p-2">{d.pelaksanaanLog}</td>
-                <td className="border border-slate-800 p-2 font-medium text-blue-700">{d.hasilLog}</td>
+              <tr key={d.id} className="hover:bg-slate-50 align-top">
+                <td className="border border-slate-800 p-2 text-center font-bold text-slate-400">{i + 1}</td>
+                <td className="border border-slate-800 p-2 font-black uppercase text-slate-800 leading-tight">{d.namaGuru}</td>
+                <td className="border border-slate-800 p-2 text-center font-bold">{d.hari}, {d.tanggalPemb || d.tanggal}</td>
+                <td className="border border-slate-800 p-2 text-center font-black text-slate-700">{d.jamKe || '-'}</td>
+                <td className="border border-slate-800 p-2 italic text-indigo-700">{d.mataPelajaran}</td>
+                <td className="border border-slate-800 p-2 text-center font-bold">{d.kelas}</td>
+                <td className="border border-slate-800 p-2 italic leading-relaxed text-slate-600">{d.persiapanLog}</td>
+                <td className="border border-slate-800 p-2 italic leading-relaxed text-slate-600">{d.pelaksanaanLog}</td>
+                <td className="border border-slate-800 p-2 font-bold italic leading-relaxed text-blue-900 bg-blue-50/10">{d.hasilLog}</td>
               </tr>
             ))}
-            {logData.length === 0 && (
-              <tr><td colSpan={8} className="p-10 text-center italic text-slate-400 border border-slate-800">Jurnal pelaksanaan supervisi masih kosong.</td></tr>
-            )}
           </tbody>
         </table>
       </div>

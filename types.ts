@@ -5,79 +5,83 @@ export enum SupervisionStatus {
   RESCHEDULED = 'Dijadwal Ulang'
 }
 
+export interface TeacherRecord {
+  id: number;
+  no: number;
+  hari: string;
+  tanggal: string;
+  namaGuru: string;
+  mataPelajaran: string;
+  kelas: string;
+  jamKe: string;
+  status: SupervisionStatus;
+  feedbackAI?: string;
+  semester: 'Ganjil' | 'Genap';
+  nip?: string;
+  pangkatGolongan?: string;
+  nilaiAdm?: number;
+  nilaiATP?: number;
+  nilaiModul?: number;
+  nilai?: number; 
+  nilaiPenilaian?: number;
+  catatan?: string;
+  tindakLanjut?: string;
+  realisasi?: string;
+  saran?: string;
+  tanggalAdm?: string;
+  tanggalPemb?: string;
+  pukul?: string;
+  pewawancara?: string;
+  tempat?: string;
+}
+
+export type ViewType = 
+  | 'dashboard' | 'supervision' | 'settings' | 'schedule' 
+  | 'prog-extra'
+  | 'supervision-admin-guru' | 'schedule-admin' | 'schedule-extra'
+  | 'inst-atp' | 'inst-modul' | 'inst-administrasi' | 'inst-pelaksanaan' | 'inst-penilaian' | 'inst-hasil-observasi' | 'inst-post-observasi'
+  | 'tendik-sekolah' | 'tendik-ketenagaan' | 'tendik-perlengkapan' | 'tendik-perpustakaan' | 'tendik-lab-ipa' | 'tendik-lab-komputer' | 'tendik-kesiswaan' | 'inst-ekstra'
+  | 'ptl-akademik' | 'ptl-tendik' | 'ptl-extra' | 'results-followup-action'
+  | 'lap-akademik' | 'lap-tendik' | 'lap-extra'
+  | 'lap-analisis-pbm' | 'lap-catatan-pbm' | 'lap-rekap-akademik' | 'lap-ptl-akademik' | 'lap-action-akademik';
+
 export interface DateRange {
   from: string;
   to: string;
 }
 
-export interface InstrumentResult {
-  scores: Record<number, number | string>;
-  remarks: Record<number, string>;
-  catatan?: string;
-  tindakLanjut?: string;
-  materi?: string;
-  kelasSemester?: string;
-  answers?: Record<number, string>; // Untuk pertanyaan post-observasi
-  kesanUmum?: string;
-  saran?: string;
-  // Untuk menyimpan status centang di tab Tindak Lanjut Action
-  actions?: {
-    contoh: boolean;
-    tanyaJawab: boolean;
-    diskusi: boolean;
-    konsultasi: boolean;
-    pelatihan: boolean;
-  };
-}
-
 export interface AppSettings {
+  namaSekolah: string;
+  namaAdministrator: string;
+  nipAdministrator: string;
+  tahunPelajaran: string;
+  semester: 'Ganjil' | 'Genap';
   namaKepalaSekolah: string;
   nipKepalaSekolah: string;
   namaPengawas: string;
   nipPengawas: string;
-  tahunPelajaran: string;
-  semester: 'Ganjil' | 'Genap';
-  namaSekolah: string;
-  tanggalCetak: string;
-  supervisors: string[];
-  rangeAdmGuruGanjil: DateRange;
-  rangeAdmGuruGenap: DateRange;
   rangePembelajaranGuru: DateRange;
   rangePembelajaranGuruGenap: DateRange;
+  rangeAdmGuruGanjil: DateRange;
+  rangeAdmGuruGenap: DateRange;
   rangeTendikGanjil: DateRange;
   rangeTendikGenap: DateRange;
   rangeExtraGanjil: DateRange;
   rangeExtraGenap: DateRange;
+  supervisors: string[];
+  tanggalCetak: string;
 }
 
-export interface TeacherRecord {
-  id: number;
-  no: number;
-  hari: string;
-  tanggal: string; // Legacy / Default
-  tanggalAdm?: string; // Tanggal supervisi administrasi
-  tanggalPemb?: string; // Tanggal supervisi pembelajaran
-  namaGuru: string;
-  nip?: string;
-  pangkatGolongan?: string;
-  mataPelajaran: string;
-  kelas: string;
-  jamKe: string;
-  status: SupervisionStatus;
-  semester: 'Ganjil' | 'Genap'; 
-  pukul?: string; 
-  pewawancara?: string;
-  tempat?: string;
-  nilai?: number; 
-  nilaiAdm?: number; 
-  nilaiPenilaian?: number;
-  nilaiATP?: number;
-  nilaiModul?: number;
+export interface InstrumentResult {
+  scores: Record<string | number, any>;
+  remarks: Record<string | number, string>;
   catatan?: string;
-  tindakLanjut?: string; 
-  realisasi?: string;     
+  tindakLanjut?: string;
+  materi?: string;
+  answers?: Record<number, string>;
+  kesanUmum?: string;
   saran?: string;
-  feedbackAI?: string;
+  actions?: any;
 }
 
 export interface ExtraRecord {
@@ -91,6 +95,8 @@ export interface ExtraRecord {
   tempat: string;
   supervisor: string;
   semester: 'Ganjil' | 'Genap';
+  status?: SupervisionStatus;
+  nilai?: number;
 }
 
 export interface AdminRecord {
@@ -104,70 +110,6 @@ export interface AdminRecord {
   tempat: string;
   supervisor: string;
   semester: 'Ganjil' | 'Genap';
-}
-
-export type ViewType = 
-  | 'dashboard'
-  | 'settings'
-  | 'supervision-admin-guru' 
-  | 'supervision' 
-  | 'schedule-extra'
-  | 'schedule-admin'
-  | 'schedule' 
-  | 'inst-administrasi' 
-  | 'inst-penilaian' 
-  | 'inst-pelaksanaan' 
-  | 'inst-atp' 
-  | 'inst-modul'
-  | 'inst-ekstra'
-  | 'inst-post-observasi'
-  | 'inst-hasil-observasi'
-  | 'tendik-sekolah'
-  | 'tendik-ketenagaan'
-  | 'tendik-perlengkapan'
-  | 'tendik-perpustakaan'
-  | 'tendik-lab-ipa'
-  | 'tendik-lab-komputer'
-  | 'tendik-kesiswaan'
-  | 'results-administrasi'
-  | 'results-learning'
-  | 'results-penilaian'
-  | 'results-atp'
-  | 'results-modul'
-  | 'results-analysis'
-  | 'results-log'
-  | 'results-recap'
-  | 'results-followup-program'
-  | 'results-followup-action'
-  | 'results-tendik'
-  | 'results-extra'
-  // NEW VIEW TYPES
-  | 'prog-akademik'
-  | 'prog-tendik'
-  | 'prog-extra'
-  | 'ptl-akademik'
-  | 'ptl-tendik'
-  | 'ptl-extra'
-  | 'lap-akademik'
-  | 'lap-tendik'
-  | 'lap-extra';
-
-export interface ScheduleRow {
-  ke: string;
-  waktu: string;
-  activity?: string;
-  classes?: Record<string, string>;
-}
-
-export interface DaySchedule {
-  day: string;
-  rows: ScheduleRow[];
-}
-
-export interface TeacherCode {
-  no: number;
-  nama: string;
-  mapel: string;
-  kode: string;
-  tugas?: string;
+  status?: SupervisionStatus;
+  nilai?: number;
 }

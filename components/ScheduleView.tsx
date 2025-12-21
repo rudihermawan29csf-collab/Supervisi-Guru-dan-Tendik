@@ -27,7 +27,8 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ settings }) => {
   const exportExcel = () => {
     const day = FULL_SCHEDULE[activeTab];
     const headers = "Waktu," + CLASS_LIST.join(",");
-    const rows = day.rows.map(r => r.activity ? `"${r.waktu}","${r.activity}"` : `"${r.waktu}",${CLASS_LIST.map(c => r.classes?.[c] || '-').join(",")}`).join("\n");
+    // Fix: Cast r to any to resolve 'Property activity does not exist' error on inferred row type
+    const rows = day.rows.map((r: any) => r.activity ? `"${r.waktu}","${r.activity}"` : `"${r.waktu}",${CLASS_LIST.map(c => r.classes?.[c] || '-').join(",")}`).join("\n");
     const blob = new Blob([headers + "\n" + rows], { type: 'text/csv' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -64,7 +65,8 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ settings }) => {
               </tr>
             </thead>
             <tbody>
-              {FULL_SCHEDULE[activeTab].rows.map((row, idx) => (
+              {/* Fix: Cast row to any to resolve 'Property activity does not exist' error on inferred row type */}
+              {FULL_SCHEDULE[activeTab].rows.map((row: any, idx) => (
                 <tr key={idx}>
                   <td className="px-4 py-3 text-xs font-bold border-b border-r text-center">{row.ke}</td>
                   <td className="px-4 py-3 text-xs border-b border-r text-center font-mono">{row.waktu}</td>
